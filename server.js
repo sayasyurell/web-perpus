@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 
 const db = require('./db');
-
+const pkg = require('./package.json');
 // Import routes
 const bukuRouter       = require('./routes/buku');
 const anggotaRouter    = require('./routes/anggota');
@@ -74,7 +74,9 @@ app.use((req, res, next) => {
     // Auto-replace emoji 📚 di sidebar jadi logo sekolah
     html = html.replace(/>Perpustakaan<\/div>/g, '>SMPN 1 Taman</div>');
     html = html.replace(/>Sekolah<\/div>/g, '>Sidoarjo</div>');
-
+    // Auto-update info versi & fase
+    html = html.replace(/>v0\.7<\/dd>/g, `>v${pkg.version}</dd>`);
+    html = html.replace(/>v0\.\d+ — Fase \d+<\/div>/g, `>v${pkg.version} — Production</div>`);
         // Auto-inject menu "Scan Mode" ke sidebar (skip kalau sudah ada)
     if (!html.includes('/scan.html')) {
       html = html.replace(
