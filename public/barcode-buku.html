@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Barcode ISBN Buku</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+  <style>
+    .bc-card {
+      display: inline-block; width: 280px; padding: 12px; margin: 6px;
+      background: white; border: 1px solid #e2e8f0; border-radius: 8px;
+      text-align: center; vertical-align: top;
+    }
+    .bc-card .judul {
+      font-size: 11px; font-weight: 600; color: #1e293b;
+      height: 30px; overflow: hidden; margin-bottom: 6px;
+    }
+    .bc-card svg { max-width: 100%; display: block; margin: 0 auto; }
+    .bc-card .info {
+      font-size: 10px; color: #64748b; margin-top: 4px;
+      font-family: monospace;
+    }
+    .bc-card.no-isbn { background: #fef3c7; border-color: #fbbf24; }
+    .btn-icon { display: inline-block; vertical-align: -0.15em; }
+    @media print {
+      body { background: white !important; }
+      .no-print { display: none !important; }
+      .bc-card { border: 1px dashed #94a3b8; page-break-inside: avoid; }
+      .bc-card.no-isbn { background: white !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 p-6 min-h-screen">
+
+  <div id="print-area" class="max-w-6xl mx-auto">
+
+    <!-- Header -->
+    <div class="no-print mb-6 flex items-center justify-between flex-wrap gap-3">
+      <div class="flex items-center gap-3">
+        <a href="/" class="p-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700" title="Kembali ke Dashboard">
+          <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        </a>
+        <div>
+          <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+            <i data-lucide="tag" class="w-6 h-6 text-blue-600"></i>
+            Barcode ISBN Buku
+          </h1>
+          <p class="text-slate-500 text-sm">Scan pakai ISBN — fallback ke kode internal kalau tidak ada</p>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <a href="/scan.html"
+          class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium shadow-sm">
+          <i data-lucide="scan-line" class="w-4 h-4"></i>
+          <span>Buka Scan Mode</span>
+        </a>
+        <button id="btn-print"
+          class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow-sm">
+          <i data-lucide="printer" class="w-4 h-4"></i>
+          <span>Print</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="no-print bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-sm text-blue-800">
+      <div class="flex items-start gap-2">
+        <i data-lucide="lightbulb" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+        <div>
+          <b>Info:</b>
+          <ul class="list-disc list-inside mt-1 text-blue-700 space-y-0.5">
+            <li><b>ISBN 13 digit</b> → barcode EAN-13 (standar internasional buku)</li>
+            <li><b>ISBN 10 digit / kosong</b> → barcode CODE128 (pakai kode internal)</li>
+            <li>Kartu warna <span class="bg-amber-200 px-1.5 rounded text-amber-900">kuning</span> = buku tanpa ISBN valid</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Container Barcode -->
+    <div id="container">
+      <div class="text-center py-10 text-slate-400 flex items-center justify-center gap-2">
+        <i data-lucide="loader" class="w-5 h-5 animate-spin"></i>
+        <span>Memuat data buku...</span>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/icons.js"></script>
+  <script>
+    function escapeHtml(str) {
+      if (str == null) return '';
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    }
+
+    async function load() {
+      const container = document.getElementById('container');
+      try {
+        const res = await apiGet('/buku', { limit: 500 });
+        const list = res.data || [];
+
+        if (!list.length) {
+          container.innerHTML = `
+            <div class="text-center py-10 text-slate-400">
+              <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-2 opacity-50"></i>
+              <div>Belum ada buku</div>
+            </div>`;
+          if (window.lucide) lucide.createIcons();
+          return;
+        }
+
+        container.innerHTML = '';
+
+        list.forEach((b, i) => {
+          const isbn = (b.isbn || '').replace(/[^0-9]/g, '');
+          let value, format, isFallback = false;
+
+          if (isbn.length === 13) {
+            value = isbn;
+            format = 'EAN13';
+          } else if (isbn.length === 10) {
+            value = isbn;
+            format = 'CODE128';
+          } else {
+            value = b.kode_buku;
+            format = 'CODE128';
+            isFallback = true;
+          }
+
+          const card = document.createElement('div');
+          card.className = 'bc-card' + (isFallback ? ' no-isbn' : '');
+          card.innerHTML = `
+            <div class="judul">${escapeHtml(b.judul)}</div>
+            <svg id="bc-${i}"></svg>
+            <div class="info">
+              ${isFallback
+                ? `Tidak ada ISBN &middot; pakai ${escapeHtml(b.kode_buku)}`
+                : `ISBN: ${isbn}`}
+            </div>
+          `;
+          container.appendChild(card);
+
+          try {
+            JsBarcode('#bc-' + i, value, {
+              format: format,
+              width: format === 'EAN13' ? 1.6 : 1.4,
+              height: 55,
+              displayValue: true,
+              fontSize: 12,
+              font: 'Courier New',
+              textMargin: 2,
+              margin: 4
+            });
+          } catch (e) {
+            document.getElementById('bc-' + i).outerHTML =
+              `<div style="color:red;font-size:10px;padding:20px 0;">Error: ${e.message}</div>`;
+          }
+        });
+      } catch (err) {
+        container.innerHTML = `
+          <div class="text-center py-10 text-red-500">
+            <i data-lucide="alert-circle" class="w-12 h-12 mx-auto mb-2"></i>
+            <div>${escapeHtml(err.message)}</div>
+          </div>`;
+        if (window.lucide) lucide.createIcons();
+      }
+    }
+
+    document.getElementById('btn-print').addEventListener('click', () => window.print());
+
+    // Render Lucide setelah DOM siap
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) lucide.createIcons();
+      load();
+    });
+  </script>
+
+</body>
+</html>

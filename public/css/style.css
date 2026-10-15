@@ -1,0 +1,14 @@
+/* Ikon Lucide inline */
+.icon-inline {
+  display: inline-block;
+  vertical-align: -0.15em;
+  width: 1.1em;
+  height: 1.1em;
+  stroke-width: 2.2;
+}
+
+/* Ukuran khusus untuk ikon besar (kartu dashboard) */
+.icon-inline.w-10 {
+  width: 2.5rem;
+  height: 2.5rem;
+}

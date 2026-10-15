@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pengaturan - Perpustakaan Sekolah</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/style.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body class="bg-slate-100 min-h-screen">
+
+  <div class="flex min-h-screen">
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="w-60 bg-slate-900 text-slate-100 flex-shrink-0 flex flex-col">
+      <div class="p-5 border-b border-slate-700">
+        <div class="flex items-center gap-2">
+          <img src="/img/logo.png" class="sidebar-logo" alt="Logo">
+          <div>
+            <div class="font-bold text-sm">Perpustakaan</div>
+            <div class="text-xs text-slate-400">Sekolah</div>
+          </div>
+        </div>
+      </div>
+
+      <nav class="flex-1 p-3 space-y-1 text-sm">
+        <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300">
+          <span>🏠</span> <span>Dashboard</span>
+        </a>
+        <a href="/buku.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300">
+          <span>📖</span> <span>Buku</span>
+        </a>
+        <a href="/anggota.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300">
+          <span>👥</span> <span>Anggota</span>
+        </a>
+        <a href="/peminjaman.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300">
+          <span>🔄</span> <span>Peminjaman</span>
+        </a>
+        <a href="/laporan.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300">
+          <span>📊</span> <span>Laporan</span>
+        </a>
+        <a href="/pengaturan.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-600 text-white font-medium">
+          <span>⚙️</span> <span>Pengaturan</span>
+        </a>
+      </nav>
+
+      <div class="p-4 border-t border-slate-700 text-xs text-slate-500">v0.7 — Fase 7</div>
+    </aside>
+
+    <!-- ============ MAIN ============ -->
+    <main class="flex-1 p-8 overflow-x-auto">
+
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-slate-800">Pengaturan</h1>
+        <p class="text-slate-500 text-sm">Atur konfigurasi perpustakaan & kelola data</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- ============ KOLOM KIRI: FORM PENGATURAN ============ -->
+        <div class="lg:col-span-2 space-y-6">
+
+          <!-- Pengaturan Umum -->
+          <div class="bg-white p-6 rounded-xl shadow-sm">
+            <h2 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <span>⚙️</span> Konfigurasi Perpustakaan
+            </h2>
+
+            <form id="form-pengaturan" class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Nama Perpustakaan</label>
+                <input type="text" id="f-nama_perpustakaan"
+                  class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="text-xs text-slate-400 mt-1">Muncul di header cetak struk & laporan</p>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Denda per Hari (Rp)</label>
+                  <input type="number" id="f-denda_per_hari" min="0" step="100"
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Lama Pinjam (hari)</label>
+                  <input type="number" id="f-lama_pinjam_default" min="1" max="90"
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1">Max Buku / Pinjam</label>
+                  <input type="number" id="f-max_buku_per_pinjam" min="1" max="20"
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+              </div>
+
+              <div class="flex justify-end pt-4 border-t border-slate-200">
+                <button type="submit" id="btn-simpan"
+                  class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">
+                  💾 Simpan Pengaturan
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Kartu Anggota QR -->
+          <div class="bg-white p-6 rounded-xl shadow-sm">
+            <h2 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <span>🎫</span> Cetak Kartu Anggota (QR)
+            </h2>
+            <p class="text-sm text-slate-500 mb-4">
+              Pilih anggota untuk generate kartu dengan QR code. Bisa dicetak langsung atau save PDF.
+            </p>
+
+            <div class="flex flex-wrap gap-3 items-center mb-4">
+              <select id="pilih-anggota"
+                class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[300px]">
+                <option value="">-- Pilih Anggota --</option>
+              </select>
+              <button id="btn-cetak-kartu" disabled
+                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium">
+                🖨️ Cetak Kartu
+              </button>
+              <button id="btn-cetak-semua"
+                class="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg text-sm font-medium">
+                🖨️ Cetak Semua (10 pertama)
+              </button>
+            </div>
+            
+          <!-- Barcode Buku -->
+          <div class="bg-white p-6 rounded-xl shadow-sm">
+            <h2 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <span>🏷️</span> Cetak Barcode Buku
+            </h2>
+            <p class="text-sm text-slate-500 mb-4">
+              Generate & cetak barcode untuk semua buku (pakai ISBN kalau ada, fallback ke kode internal).
+              Cocok untuk ditempel di buku fisik.
+            </p>
+
+            <a href="/barcode-buku.html" target="_blank"
+              class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium">
+              🖨️ Buka Halaman Barcode Buku
+            </a>
+
+            <div class="mt-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+              <p class="text-xs text-indigo-800">
+                <b>💡 Tips:</b> Setelah halaman terbuka, klik <b>Ctrl + P</b>.
+                Uncheck "Headers and footers", scale 100%, lalu print di stiker label.
+              </p>
+            </div>
+          </div>
+
+            <div id="preview-kartu" class="hidden mt-4 p-4 bg-slate-50 border border-slate-200 rounded-lg">
+              <p class="text-xs text-slate-500 mb-2">Preview:</p>
+              <div id="preview-kartu-content"></div>
+            </div>
+          </div>
+
+          <!-- Zona Bahaya -->
+          <div class="bg-white p-6 rounded-xl shadow-sm border-2 border-red-200">
+            <h2 class="font-bold text-red-700 mb-2 flex items-center gap-2">
+              <span>⚠️</span> Zona Bahaya
+            </h2>
+            <p class="text-sm text-slate-500 mb-4">
+              Tindakan berikut bersifat <b>permanen</b>. Pastikan sudah backup sebelum melakukan.
+            </p>
+
+            <div class="space-y-3">
+              <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                <div>
+                  <div class="font-medium text-slate-800 text-sm">Reset Data Peminjaman</div>
+                  <div class="text-xs text-slate-500">Hapus semua transaksi peminjaman, stok buku dikembalikan</div>
+                </div>
+                <button id="btn-reset-peminjaman"
+                  class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-medium">
+                  Reset
+                </button>
+              </div>
+
+              <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                <div>
+                  <div class="font-medium text-slate-800 text-sm">Reset Semua Data</div>
+                  <div class="text-xs text-slate-500">Hapus buku, anggota, dan peminjaman (pengaturan tetap)</div>
+                </div>
+                <button id="btn-reset-semua"
+                  class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded-lg text-xs font-medium">
+                  Hapus Semua
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ============ KOLOM KANAN: BACKUP & INFO ============ -->
+        <div class="space-y-6">
+
+          <!-- Backup -->
+          <div class="bg-white p-6 rounded-xl shadow-sm">
+            <h2 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+              <span>💾</span> Backup Database
+            </h2>
+            <p class="text-sm text-slate-500 mb-4">
+              Download file <code class="text-xs bg-slate-100 px-1.5 py-0.5 rounded">perpus.db</code> sebagai backup.
+              Simpan di tempat aman (flashdisk / cloud).
+            </p>
+
+            <button id="btn-backup"
+              class="w-full px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium flex items-center justify-center gap-2">
+              <span>⬇️</span> Download Backup Sekarang
+            </button>
+
+            <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p class="text-xs text-blue-800">
+                <b>💡 Tips:</b> Backup rutin seminggu sekali. Kalau ada masalah,
+                tinggal replace file <code>perpus.db</code> lama.
+              </p>
+            </div>
+          </div>
+
+          <!-- Info Database -->
+          <div class="bg-white p-6 rounded-xl shadow-sm">
+            <h2 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+              <span>📊</span> Info Database
+            </h2>
+            <dl class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <dt class="text-slate-500">Ukuran File</dt>
+                <dd class="font-medium text-slate-800" id="info-size">—</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-slate-500">Terakhir Update</dt>
+                <dd class="font-medium text-slate-800 text-xs" id="info-mtime">—</dd>
+              </div>
+              <div class="border-t border-slate-100 my-2"></div>
+              <div class="flex justify-between">
+                <dt class="text-slate-500">📚 Buku</dt>
+                <dd class="font-bold text-slate-800" id="info-buku">—</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-slate-500">👥 Anggota</dt>
+                <dd class="font-bold text-slate-800" id="info-anggota">—</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-slate-500">🔄 Peminjaman</dt>
+                <dd class="font-bold text-slate-800" id="info-peminjaman">—</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-slate-500">📋 Detail Item</dt>
+                <dd class="font-bold text-slate-800" id="info-detail">—</dd>
+              </div>
+            </dl>
+          </div>
+
+          <!-- Info Aplikasi -->
+          <div class="bg-white p-6 rounded-xl shadow-sm">
+            <h2 class="font-bold text-slate-800 mb-3 flex items-center gap-2">
+              <span>ℹ️</span> Aplikasi
+            </h2>
+            <dl class="space-y-2 text-sm">
+              <div class="flex justify-between">
+                <dt class="text-slate-500">Versi</dt>
+                <dd class="font-medium text-slate-800">v0.7</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-slate-500">Fase</dt>
+                <dd class="font-medium text-slate-800">7 — Polish</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-slate-500">Database</dt>
+                <dd class="font-medium text-slate-800">SQLite</dd>
+              </div>
+            </dl>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ============ MODAL KONFIRMASI RESET ============ -->
+  <div id="modal-reset" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+      <div class="text-5xl mb-3 text-center">🚨</div>
+      <h2 class="text-lg font-bold text-slate-800 mb-2 text-center" id="reset-title">Konfirmasi Reset</h2>
+      <p class="text-sm text-slate-500 mb-4 text-center" id="reset-desc"></p>
+
+      <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+        <p class="text-xs text-red-700">
+          Tindakan ini <b>tidak bisa dibatalkan</b>. Ketik <b>HAPUS</b> untuk konfirmasi.
+        </p>
+      </div>
+
+      <input type="text" id="input-konfirmasi" placeholder="Ketik: HAPUS"
+        class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-red-500 mb-4">
+
+      <div class="flex gap-2">
+        <button id="btn-cancel-reset"
+          class="flex-1 px-4 py-2 border border-slate-300 rounded-lg text-sm hover:bg-slate-100">Batal</button>
+        <button id="btn-konfirmasi-reset" disabled
+          class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium">
+          Konfirmasi Reset
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Print Area untuk Kartu -->
+  <div id="print-area" class="hidden"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/pengaturan.js"></script>
+    <script src="/js/icons.js"></script>
+</body>
+</html>
