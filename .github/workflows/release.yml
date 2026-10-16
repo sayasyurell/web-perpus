@@ -3,44 +3,48 @@ name: Build & Release Portable
 on:
   push:
     tags:
-      - 'v*'   # Trigger saat push tag v1.0.0, v1.0.1, dst.
+      - 'v*'
+
+permissions:
+  contents: write
 
 jobs:
   build-release:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Setup Node.js 22
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '20'
 
-      # Download node.exe portable untuk Windows
-      - name: Download Node.js Windows binary
+      - name: Download Node.exe Portable
         run: |
           mkdir -p build-portable
-          curl -L -o build-portable/node.exe https://nodejs.org/dist/v22.20.0/win-x64/node.exe
-          chmod +x build-portable/node.exe
+          curl -sL -o build-portable/node.exe https://nodejs.org/dist/v20.18.0/win-x64/node.exe
+          echo "Node.exe size: $(ls -lh build-portable/node.exe | awk '{print $5}')"
 
-      # Copy semua file project ke build-portable/app
-      - name: Copy project files
+      - name: Copy Project Files
         run: |
           mkdir -p build-portable/app
           cp server.js db.js package.json package-lock.json .gitignore build-portable/app/
-          cp -r public routes build-portable/app/
+          cp -r public routes middleware utils build-portable/app/
+          echo "Files copied:"
+          ls -la build-portable/app/
 
-      # Install dependencies production (prebuild binary akan di-handle otomatis)
-      - name: Install production dependencies
+      - name: Install Dependencies
         run: |
           cd build-portable/app
-          npm install --omit=dev --ignore-scripts
-          # Ambil prebuilt binary better-sqlite3 untuk Windows
-          npm rebuild better-sqlite3 --platform=win32 --arch=x64
+          npm install --omit=dev --ignore-scripts --no-audit --no-fund 2>&1 | tail -5
+          echo "Dependencies installed:"
+          ls node_modules/ | head -10
 
-      # Buat start.bat
       - name: Create start.bat
         run: |
           cat > build-portable/start.bat << 'EOF'
@@ -62,35 +66,60 @@ jobs:
           pause
           EOF
 
-      # Zip semua
       - name: Create ZIP
         run: |
           cd build-portable
-          zip -r ../web-perpus-portable-${{ github.ref_name }}.zip .
+          zip -r -q -9 ../app-${{ github.ref_name }}.zip . \
+            -x "*/node_modules/*/test/*" \
+               "*/node_modules/*/tests/*" \
+               "*/node_modules/*/docs/*" \
+               "*/node_modules/*/*.md" \
+               "*/node_modules/*/*.txt" \
+               "*/node_modules/*/*.map" \
+               "*/node_modules/*/*.d.ts" \
+               "*/node_modules/*/.eslint*" \
+               "*/node_modules/*/.editorconfig" \
+               "*/node_modules/*/.travis.yml" \
+               "*/node_modules/*/.github/*" \
+               "*/node_modules/*/example/*" \
+               "*/node_modules/*/examples/*" \
+               "*/node_modules/.bin/*"
+          cd ..
+          echo "=== File ZIP hasil ==="
+          ls -lh app-*.zip
+          echo "=== Working directory ==="
+          pwd
 
-      # Upload otomatis ke GitHub Release
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: app-${{ github.ref_name }}.zip
+          files: ${{ github.workspace }}/app-${{ github.ref_name }}.zip
           name: "Versi ${{ github.ref_name }}"
+          generate_release_notes: true
           body: |
             ## 📚 Perpustakaan SMPN 1 Taman Sidoarjo — ${{ github.ref_name }}
 
             ### 🚀 Cara Pakai
-            1. Download `app-${{ github.ref_name }}.zip`
+            1. Download **`app-${{ github.ref_name }}.zip`** di bawah
             2. Extract ke folder manapun
-            3. Dobel-klik `start.bat`
+            3. Dobel-klik **`start.bat`**
             4. **Password admin muncul di cmd** — catat & simpan
-            5. Buka http://localhost:3000 → login → ganti password
+            5. Browser otomatis terbuka di http://localhost:3000
+            6. Login → wajib ganti password
 
             ### 💻 Kebutuhan
             - Windows 10/11 (64-bit)
             - Tidak perlu install Node.js (sudah di-bundle)
-            - Offline-ready (semua library lokal)
+            - Offline-ready
 
-            ### 📋 Fitur
-            - 🔒 Login admin dengan session aman
+            ### 🔒 Keamanan
+            - Login + session aman (cookie HttpOnly, SameSite=Strict)
+            - Password hashing scrypt
+            - Rate limit & CSRF protection
+            - XSS & CSV injection protection
+            - Backup aman via SQLite native API
+
+            ### 📋 Fitur Lengkap
             - 📖 Kelola Buku (CRUD + Import CSV + barcode ISBN)
             - 👥 Kelola Anggota (CRUD + Import CSV + kartu barcode)
             - 🔄 Peminjaman & Pengembalian otomatis dengan denda
@@ -98,10 +127,10 @@ jobs:
             - 📊 Dashboard & Laporan (export CSV + print)
             - ⚙️ Pengaturan (denda, lama pinjam, backup)
 
-            ### 🔄 Changelog Lengkap
-            Lihat [commit history](https://github.com/sayasyurell/web-perpus/commits/${{ github.ref_name }}) untuk detail perubahan.
+            ### ⚠️ Upgrade dari versi lama
+            - Copy folder `database/` dari instalasi lama ke folder baru
+            - Login dengan password admin baru (ditampilkan di cmd saat pertama start)
           draft: false
           prerelease: false
-
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
