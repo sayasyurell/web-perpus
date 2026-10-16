@@ -30,6 +30,10 @@ async function loadPengaturan() {
     document.getElementById('f-lama_pinjam_default').value = state.settings.lama_pinjam_default || 7;
     document.getElementById('f-max_buku_per_pinjam').value = state.settings.max_buku_per_pinjam || 3;
 
+    // Info aplikasi — versi otomatis dari package.json
+    const versionEl = document.querySelector('[data-app-version]');
+    if (versionEl && res.app) versionEl.textContent = 'v' + res.app.version;
+
     // Isi info
     const info = res.info;
     document.getElementById('info-size').textContent = info.db_size_human;

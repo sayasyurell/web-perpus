@@ -108,3 +108,4 @@ document.addEventListener('click', (e) => {
   // Helper stop propagation
   if (e.target.closest('[data-stop]')) e.stopPropagation();
 });
+

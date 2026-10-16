@@ -6,7 +6,7 @@ const router = express.Router();
 const db = require('../db');
 const fs = require('fs');
 const path = require('path');
-
+const pkg = require('../package.json');
 const DB_PATH = path.join(__dirname, '..', 'database', 'perpus.db');
 
 // ================================================================
@@ -32,9 +32,13 @@ router.get('/', (req, res) => {
       detail:   db.prepare('SELECT COUNT(*) as n FROM peminjaman_detail').get().n
     };
 
-    res.json({
+        res.json({
       status: 'ok',
       data: rows,
+      app: {                                    // ← BARU
+        version: pkg.version,                   // ← BARU
+        name: pkg.name                          // ← BARU
+      },                                        // ← BARU
       info: {
         db_size: dbSize,
         db_size_human: (dbSize / 1024).toFixed(2) + ' KB',
@@ -46,6 +50,7 @@ router.get('/', (req, res) => {
     res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
+
 
 // ================================================================
 // PUT /api/pengaturan — update banyak setting sekaligus
