@@ -72,25 +72,36 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: web-perpus-portable-${{ github.ref_name }}.zip
+          files: app-${{ github.ref_name }}.zip
           name: "Versi ${{ github.ref_name }}"
           body: |
             ## 📚 Perpustakaan SMPN 1 Taman Sidoarjo — ${{ github.ref_name }}
 
             ### 🚀 Cara Pakai
-            1. Download `web-perpus-portable-${{ github.ref_name }}.zip`
+            1. Download `app-${{ github.ref_name }}.zip`
             2. Extract ke folder manapun
             3. Dobel-klik `start.bat`
-            4. Browser otomatis terbuka di http://localhost:3000
+            4. **Password admin muncul di cmd** — catat & simpan
+            5. Buka http://localhost:3000 → login → ganti password
 
             ### 💻 Kebutuhan
             - Windows 10/11 (64-bit)
             - Tidak perlu install Node.js (sudah di-bundle)
-            - Offline-ready
+            - Offline-ready (semua library lokal)
 
-            ### 🔄 Perubahan
-            Lihat commit history untuk detail update.
+            ### 📋 Fitur
+            - 🔒 Login admin dengan session aman
+            - 📖 Kelola Buku (CRUD + Import CSV + barcode ISBN)
+            - 👥 Kelola Anggota (CRUD + Import CSV + kartu barcode)
+            - 🔄 Peminjaman & Pengembalian otomatis dengan denda
+            - 🎯 Mode Scan barcode (auto-detect pinjam/kembali)
+            - 📊 Dashboard & Laporan (export CSV + print)
+            - ⚙️ Pengaturan (denda, lama pinjam, backup)
+
+            ### 🔄 Changelog Lengkap
+            Lihat [commit history](https://github.com/sayasyurell/web-perpus/commits/${{ github.ref_name }}) untuk detail perubahan.
           draft: false
           prerelease: false
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
