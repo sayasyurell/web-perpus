@@ -36,7 +36,6 @@ router.get('/', (req, res) => {
       status: 'ok',
       data: rows,
       info: {
-        db_path: DB_PATH,
         db_size: dbSize,
         db_size_human: (dbSize / 1024).toFixed(2) + ' KB',
         db_mtime: dbMtime,
@@ -44,7 +43,7 @@ router.get('/', (req, res) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
@@ -87,21 +86,19 @@ router.put('/', (req, res) => {
     const rows = db.prepare('SELECT key, value, keterangan FROM pengaturan ORDER BY key ASC').all();
     res.json({ status: 'ok', message: `${count} pengaturan berhasil disimpan`, data: rows });
   } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
 // ================================================================
 // GET /api/pengaturan/backup — Download database
 // ================================================================
-router.get('/backup', (req, res) => {
+router.get('/backup', async (req, res) => {
   try {
-    // Force WAL checkpoint biar semua data ditulis ke file utama
-    db.pragma('wal_checkpoint(TRUNCATE)');
+    const tmp = path.join(__dirname, '..', 'database', `.backup-${Date.now()}.db`);
 
-    if (!fs.existsSync(DB_PATH)) {
-      return res.status(404).json({ status: 'error', message: 'File database tidak ditemukan' });
-    }
+    // Gunakan native backup API (aman untuk DB yang sedang aktif)
+    await db.backup(tmp);
 
     const now = new Date();
     const stamp = now.getFullYear() +
@@ -113,11 +110,15 @@ router.get('/backup', (req, res) => {
     res.setHeader('Content-Type', 'application/octet-stream');
     res.setHeader('Content-Disposition', `attachment; filename="perpus_backup_${stamp}.db"`);
 
-    const stream = fs.createReadStream(DB_PATH);
+    const stream = fs.createReadStream(tmp);
     stream.pipe(res);
+
+    // Hapus file temporer setelah selesai dikirim
+    stream.on('end', () => fs.unlink(tmp, () => {}));
+    stream.on('error', () => fs.unlink(tmp, () => {}));
   } catch (err) {
-    console.error('Backup error:', err);
-    res.status(500).json({ status: 'error', message: err.message });
+    console.error('[backup]', err.message, err.stack);
+    res.status(500).json({ status: 'error', message: 'Gagal membuat backup' });
   }
 });
 
@@ -153,7 +154,7 @@ router.post('/reset', (req, res) => {
     const hasil = doReset();
     res.json({ status: 'ok', message: hasil.pesan });
   } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 

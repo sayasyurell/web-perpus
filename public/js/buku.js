@@ -69,9 +69,9 @@ function renderTabel(list) {
         <td class="px-4 py-3 text-center">${stokBadge}</td>
         <td class="px-4 py-3">
           <div class="flex gap-1 justify-center">
-            <button onclick="editBuku(${b.id})" title="Edit"
+            <button data-action="editBuku" data-id="${b.id}" title="Edit"
               class="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded hover:bg-amber-200">✏️</button>
-            <button onclick="konfirmasiHapus(${b.id}, '${escapeHtml(b.judul).replace(/'/g, "\\'")}')" title="Hapus"
+            <button data-action="konfirmasiHapus" data-id="${b.id}" data-str="${escapeHtml(b.judul)}" title="Hapus"
               class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200">🗑️</button>
           </div>
         </td>
@@ -95,7 +95,7 @@ function renderPagination(p) {
 
   const el = document.getElementById('pagination');
   const btn = (label, targetPage, disabled = false, active = false) => `
-    <button ${disabled ? 'disabled' : ''} onclick="gotoPage(${targetPage})"
+    <button ${disabled ? 'disabled' : ''} data-action="gotoPage" data-id="${targetPage}"
       class="px-3 py-1.5 rounded text-sm border ${
         active ? 'bg-blue-600 text-white border-blue-600'
         : disabled ? 'bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed'

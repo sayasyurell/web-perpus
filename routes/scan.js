@@ -49,8 +49,8 @@ router.get('/lookup/:kode', (req, res) => {
       message: 'Kode tidak dikenali: ' + rawKode
     });
   } catch (err) {
-    console.error('Scan lookup error:', err);
-    res.status(500).json({ status: 'error', message: err.message });
+    console.error('[Scan lookup error]', err.message, err.stack);
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
@@ -70,7 +70,7 @@ router.get('/pinjam-aktif/:anggota_id', (req, res) => {
 
     res.json({ status: 'ok', data: rows });
   } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
@@ -215,8 +215,8 @@ router.post('/proses', (req, res) => {
     });
 
   } catch (err) {
-    console.error('POST /scan/proses error:', err);
-    res.status(500).json({ status: 'error', message: err.message });
+    console.error('[POST /scan/proses error]', err.message, err.stack);
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 

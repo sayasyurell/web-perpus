@@ -4,6 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const { escapeCSV } = require('../utils/csv');
 
 // ================================================================
 // GET /api/anggota — List dengan pagination, search, filter
@@ -55,8 +56,8 @@ router.get('/', (req, res) => {
       kelas_list: kelasList
     });
   } catch (err) {
-    console.error('GET /anggota error:', err);
-    res.status(500).json({ status: 'error', message: err.message });
+    console.error('[GET /anggota error]', err.message, err.stack);
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
@@ -88,7 +89,7 @@ router.get('/export', (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="anggota_${Date.now()}.csv"`);
     res.send('\uFEFF' + lines.join('\n')); // BOM biar Excel nampilkan UTF-8 dengan benar
   } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
@@ -101,7 +102,7 @@ router.get('/:id', (req, res) => {
     if (!row) return res.status(404).json({ status: 'error', message: 'Anggota tidak ditemukan' });
     res.json({ status: 'ok', data: row });
   } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
@@ -134,7 +135,7 @@ router.post('/', (req, res) => {
     const created = db.prepare('SELECT * FROM anggota WHERE id = ?').get(info.lastInsertRowid);
     res.status(201).json({ status: 'ok', message: 'Anggota berhasil ditambahkan', data: created });
   } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
@@ -176,7 +177,7 @@ router.put('/:id', (req, res) => {
     const updated = db.prepare('SELECT * FROM anggota WHERE id = ?').get(id);
     res.json({ status: 'ok', message: 'Anggota berhasil diupdate', data: updated });
   } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
@@ -205,7 +206,7 @@ router.delete('/:id', (req, res) => {
     db.prepare('DELETE FROM anggota WHERE id = ?').run(id);
     res.json({ status: 'ok', message: 'Anggota berhasil dihapus' });
   } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
@@ -272,8 +273,8 @@ router.post('/import', (req, res) => {
       hasil
     });
   } catch (err) {
-    console.error('POST /anggota/import error:', err);
-    res.status(500).json({ status: 'error', message: err.message });
+    console.error('[POST /anggota/import error]', err.message, err.stack);
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 

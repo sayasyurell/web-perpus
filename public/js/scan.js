@@ -95,7 +95,7 @@ function renderList() {
                     overflow: hidden; text-overflow: ellipsis;">${escapeHtml(b.judul)}</div>
         <div style="font-size: 0.75rem; color: #64748b; font-family: monospace;">${escapeHtml(b.kode_buku)}</div>
       </div>
-      <button onclick="hapusBuku(${b.id})"
+      <button data-action="hapusBuku" data-id="${b.id}"
         style="color: #ef4444; background: none; border: none; cursor: pointer;
                padding: 8px; border-radius: 8px;">
         <i data-lucide="x" style="width:16px;height:16px;"></i>

@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
   <title>Barcode ISBN Buku</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+  <script src="/vendor/lucide.min.js"></script>
+  <script src="/vendor/JsBarcode.all.min.js"></script>
   <style>
     .bc-card {
       display: inline-block; width: 280px; padding: 12px; margin: 6px;
@@ -30,6 +30,7 @@
       .bc-card.no-isbn { background: white !important; }
     }
   </style>
+  <link rel="stylesheet" href="/css/theme.css">
 </head>
 <body class="bg-slate-100 p-6 min-h-screen">
 

@@ -97,7 +97,7 @@ function renderTabel(list) {
 
     return `
       <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer ${p.is_terlambat ? 'bg-red-50/50' : ''}"
-          onclick="bukaDetail(${p.id})">
+          data-action="bukaDetail" data-id="${p.id}">
         <td class="px-4 py-3 text-slate-500">${startNo + i}</td>
         <td class="px-4 py-3 font-mono text-xs text-slate-700 font-medium">${escapeHtml(p.kode_pinjam)}</td>
         <td class="px-4 py-3">
@@ -112,11 +112,11 @@ function renderTabel(list) {
         <td class="px-4 py-3 text-center text-slate-600 font-medium">${bukuInfo}</td>
         <td class="px-4 py-3 text-center">${statusBadge}${telatBadge}</td>
         <td class="px-4 py-3 text-right text-slate-700 font-medium">${p.denda > 0 ? formatRupiah(p.denda) : '-'}</td>
-        <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
+        <td class="px-4 py-3 text-center" data-stop>
           <div class="flex gap-1 justify-center">
-            <button onclick="bukaDetail(${p.id})" title="Detail"
+            <button data-action="bukaDetail" data-id="${p.id}" title="Detail"
               class="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200">👁️</button>
-            <button onclick="konfirmasiHapus(${p.id}, '${escapeHtml(p.kode_pinjam)}')" title="Hapus"
+            <button data-action="konfirmasiHapus" data-id="${p.id}" data-str="${escapeHtml(p.kode_pinjam)}" title="Hapus"
               class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200">🗑️</button>
           </div>
         </td>
@@ -135,7 +135,7 @@ function renderPagination(p) {
     `Menampilkan ${start}–${end} dari ${p.total} peminjaman`;
 
   const btn = (label, targetPage, disabled = false, active = false) => `
-    <button ${disabled ? 'disabled' : ''} onclick="gotoPage(${targetPage})"
+    <button ${disabled ? 'disabled' : ''} data-action="gotoPage" data-id="${targetPage}"
       class="px-3 py-1.5 rounded text-sm border ${
         active ? 'bg-blue-600 text-white border-blue-600'
         : disabled ? 'bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed'
@@ -379,7 +379,7 @@ function renderDetail(p) {
   // Tombol kembalikan (hanya kalau masih ada yang dipinjam)
   const adaBelumKembali = p.detail.some(d => d.status === 'dipinjam');
   const tombolKembalikan = adaBelumKembali
-    ? `<button onclick="kembalikanSemua()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium flex items-center gap-2">
+    ? `<button data-action="kembalikanSemua" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium flex items-center gap-2">
          ✅ Kembalikan Semua
        </button>`
     : '';

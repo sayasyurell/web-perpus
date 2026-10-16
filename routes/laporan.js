@@ -4,7 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
-
+const { escapeCSV } = require('../utils/csv');
 function todayStr() {
   const d = new Date();
   return d.getFullYear() + '-' +
@@ -12,11 +12,6 @@ function todayStr() {
     String(d.getDate()).padStart(2, '0');
 }
 
-function escapeCSV(v) {
-  if (v === null || v === undefined) return '';
-  const s = String(v);
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-}
 
 // ================================================================
 // GET /api/laporan/dashboard
@@ -111,8 +106,8 @@ router.get('/dashboard', (req, res) => {
       }
     });
   } catch (err) {
-    console.error('GET /laporan/dashboard error:', err);
-    res.status(500).json({ status: 'error', message: err.message });
+    console.error('[GET /laporan/dashboard error]', err.message, err.stack);
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
@@ -164,8 +159,8 @@ router.get('/peminjaman', (req, res) => {
 
     res.json({ status: 'ok', data: rows, rekap, periode: { dari, sampai } });
   } catch (err) {
-    console.error('GET /laporan/peminjaman error:', err);
-    res.status(500).json({ status: 'error', message: err.message });
+    console.error('[GET /laporan/peminjaman error]', err.message, err.stack);
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
@@ -206,7 +201,7 @@ router.get('/export-peminjaman', (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="laporan_peminjaman_${dari}_${sampai}.csv"`);
     res.send('\uFEFF' + lines.join('\n'));
   } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
@@ -229,7 +224,7 @@ router.get('/buku', (req, res) => {
 
     res.json({ status: 'ok', data: rows });
   } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 

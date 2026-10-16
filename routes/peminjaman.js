@@ -119,8 +119,8 @@ router.get('/', (req, res) => {
       pagination: { page, limit, total, total_page: Math.ceil(total / limit) }
     });
   } catch (err) {
-    console.error('GET /peminjaman error:', err);
-    res.status(500).json({ status: 'error', message: err.message });
+    console.error('[GET /peminjaman error]', err.message, err.stack);
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
@@ -163,8 +163,8 @@ router.get('/:id', (req, res) => {
 
     res.json({ status: 'ok', data: { ...p, detail } });
   } catch (err) {
-    console.error('GET /peminjaman/:id error:', err);
-    res.status(500).json({ status: 'error', message: err.message });
+    console.error('[GET /peminjaman/:id error]', err.message, err.stack);
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
@@ -257,8 +257,8 @@ router.post('/', (req, res) => {
       data: result
     });
   } catch (err) {
-    console.error('POST /peminjaman error:', err);
-    res.status(500).json({ status: 'error', message: err.message });
+    console.error('[POST /peminjaman error]', err.message, err.stack);
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
@@ -353,8 +353,8 @@ router.post('/:id/kembalikan', (req, res) => {
       }
     });
   } catch (err) {
-    console.error('POST /peminjaman/:id/kembalikan error:', err);
-    res.status(500).json({ status: 'error', message: err.message });
+    console.error('[POST /peminjaman/:id/kembalikan error]', err.message, err.stack);
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
@@ -398,8 +398,8 @@ router.delete('/:id', (req, res) => {
 
     res.json({ status: 'ok', message: 'Peminjaman berhasil dihapus & stok dikembalikan' });
   } catch (err) {
-    console.error('DELETE /peminjaman error:', err);
-    res.status(500).json({ status: 'error', message: err.message });
+    console.error('[DELETE /peminjaman error]', err.message, err.stack);
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 

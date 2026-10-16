@@ -99,8 +99,8 @@ router.get('/', (req, res) => {
       kategori_list: kategoriList
     });
   } catch (err) {
-    console.error('GET /buku error:', err);
-    res.status(500).json({ status: 'error', message: err.message });
+    console.error('[GET /buku error]', err.message, err.stack);
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
@@ -115,7 +115,7 @@ router.get('/:id', (req, res) => {
     }
     res.json({ status: 'ok', data: row });
   } catch (err) {
-    res.status(500).json({ status: 'error', message: err.message });
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
@@ -164,8 +164,8 @@ router.post('/', (req, res) => {
     const created = db.prepare('SELECT * FROM buku WHERE id = ?').get(info.lastInsertRowid);
     res.status(201).json({ status: 'ok', message: 'Buku berhasil ditambahkan', data: created });
   } catch (err) {
-    console.error('POST /buku error:', err);
-    res.status(500).json({ status: 'error', message: err.message });
+    console.error('[POST /buku error]', err.message, err.stack);
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
@@ -231,8 +231,8 @@ router.put('/:id', (req, res) => {
     const updated = db.prepare('SELECT * FROM buku WHERE id = ?').get(id);
     res.json({ status: 'ok', message: 'Buku berhasil diupdate', data: updated });
   } catch (err) {
-    console.error('PUT /buku error:', err);
-    res.status(500).json({ status: 'error', message: err.message });
+    console.error('[PUT /buku error]', err.message, err.stack);
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
@@ -263,8 +263,8 @@ router.delete('/:id', (req, res) => {
     db.prepare('DELETE FROM buku WHERE id = ?').run(id);
     res.json({ status: 'ok', message: 'Buku berhasil dihapus' });
   } catch (err) {
-    console.error('DELETE /buku error:', err);
-    res.status(500).json({ status: 'error', message: err.message });
+    console.error('[DELETE /buku error]', err.message, err.stack);
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 

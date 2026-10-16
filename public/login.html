@@ -1,0 +1,156 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Perpustakaan SMPN 1 Taman</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/theme.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1a2332);
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    }
+    .card {
+      background: #fff; border-radius: 20px; padding: 40px;
+      max-width: 400px; width: 100%; box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+    }
+    h1 { color: #0f172a; font-size: 1.5rem; margin-bottom: 8px; }
+    p.sub { color: #64748b; font-size: 0.875rem; margin-bottom: 24px; }
+    label { display: block; font-size: 0.875rem; font-weight: 600; color: #334155; margin-bottom: 6px; }
+    input {
+      width: 100%; padding: 12px 14px; border: 2px solid #e2e8f0;
+      border-radius: 10px; font-size: 1rem; margin-bottom: 16px;
+      transition: all 0.15s;
+    }
+    input:focus { outline: none; border-color: #059669; box-shadow: 0 0 0 4px rgba(5,150,105,0.15); }
+    button {
+      width: 100%; padding: 14px; background: #059669; color: #fff;
+      border: none; border-radius: 10px; font-size: 1rem; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+    }
+    button:hover:not(:disabled) { background: #047857; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .error { background: #fef2f2; color: #b91c1c; padding: 12px; border-radius: 10px; margin-bottom: 16px; font-size: 0.875rem; }
+    .info { background: #eff6ff; color: #1d4ed8; padding: 12px; border-radius: 10px; margin-bottom: 16px; font-size: 0.875rem; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>📚 Perpustakaan</h1>
+    <p class="sub" id="subtitle">Masuk untuk melanjutkan</p>
+
+    <div id="msg" style="display:none;"></div>
+
+    <form id="form-login">
+      <div id="step-login">
+        <label>Username</label>
+        <input type="text" id="username" required autocomplete="username">
+
+        <label>Password</label>
+        <input type="password" id="password" required autocomplete="current-password">
+
+        <button type="submit" id="btn-login">Masuk</button>
+      </div>
+
+      <div id="step-change" style="display:none;">
+        <div class="info">Anda wajib mengganti kata sandi sebelum melanjutkan.</div>
+
+        <label>Password Lama</label>
+        <input type="password" id="old_password" autocomplete="current-password">
+
+        <label>Password Baru (min. 8 karakter)</label>
+        <input type="password" id="new_password" autocomplete="new-password">
+
+        <label>Konfirmasi Password Baru</label>
+        <input type="password" id="confirm_password" autocomplete="new-password">
+
+        <button type="submit" id="btn-change">Simpan & Lanjut</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const msg = document.getElementById('msg');
+    const form = document.getElementById('form-login');
+    const stepLogin = document.getElementById('step-login');
+    const stepChange = document.getElementById('step-change');
+    const subtitle = document.getElementById('subtitle');
+    let changing = false;
+
+    function showMsg(text, type = 'error') {
+      msg.className = type;
+      msg.textContent = text;
+      msg.style.display = 'block';
+    }
+
+    // Cek query param change=1
+    if (location.search.includes('change=1')) {
+      showMsg('Anda harus mengganti kata sandi terlebih dahulu.', 'info');
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.style.display = 'none';
+
+      if (!changing) {
+        // ---- LOGIN ----
+        const btn = document.getElementById('btn-login');
+        btn.disabled = true; btn.textContent = 'Memproses...';
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+              username: document.getElementById('username').value,
+              password: document.getElementById('password').value
+            })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message || 'Login gagal');
+
+          if (data.mustChangePw) {
+            changing = true;
+            stepLogin.style.display = 'none';
+            stepChange.style.display = 'block';
+            subtitle.textContent = 'Ganti kata sandi';
+            showMsg('Login berhasil. Silakan ganti kata sandi.', 'info');
+          } else {
+            location.href = '/';
+          }
+        } catch (err) {
+          showMsg(err.message);
+        } finally {
+          btn.disabled = false; btn.textContent = 'Masuk';
+        }
+      } else {
+        // ---- CHANGE PASSWORD ----
+        const oldP = document.getElementById('old_password').value;
+        const newP = document.getElementById('new_password').value;
+        const confP = document.getElementById('confirm_password').value;
+        if (newP !== confP) return showMsg('Konfirmasi password tidak cocok');
+        if (newP.length < 8) return showMsg('Password minimal 8 karakter');
+
+        const btn = document.getElementById('btn-change');
+        btn.disabled = true; btn.textContent = 'Menyimpan...';
+        try {
+          const res = await fetch('/api/auth/change-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ old_password: oldP, new_password: newP })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message || 'Gagal');
+          location.href = '/';
+        } catch (err) {
+          showMsg(err.message);
+          btn.disabled = false; btn.textContent = 'Simpan & Lanjut';
+        }
+      }
+    });
+  </script>
+</body>
+</html>

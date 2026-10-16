@@ -72,10 +72,12 @@ function renderTabel(list) {
         <td class="px-4 py-3 text-center">${statusBadge}</td>
         <td class="px-4 py-3">
           <div class="flex gap-1 justify-center">
-            <button onclick="editAnggota(${a.id})" title="Edit"
-              class="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded hover:bg-amber-200">✏️</button>
-            <button onclick="konfirmasiHapus(${a.id}, '${escapeHtml(a.nama).replace(/'/g, "\\'")}')" title="Hapus"
-              class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200">🗑️</button>
+<button data-action="editAnggota" data-id="${a.id}" title="Edit" class="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
+  ✏️
+</button>
+<button data-action="konfirmasiHapus" data-id="${a.id}" data-str="${escapeHtml(a.nama)}" title="Hapus" class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200">
+  🗑️
+</button>
           </div>
         </td>
       </tr>
@@ -96,7 +98,7 @@ function renderPagination(p) {
     `Menampilkan ${start}–${end} dari ${p.total} anggota`;
 
   const btn = (label, targetPage, disabled = false, active = false) => `
-    <button ${disabled ? 'disabled' : ''} onclick="gotoPage(${targetPage})"
+    <button ${disabled ? 'disabled' : ''} data-action="gotoPage" data-id="${targetPage}"
       class="px-3 py-1.5 rounded text-sm border ${
         active ? 'bg-blue-600 text-white border-blue-600'
         : disabled ? 'bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed'
@@ -466,6 +468,15 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.target.id === id) el.classList.add('hidden');
     });
   });
+
+  // Event delegation untuk tombol aksi
+document.getElementById('tabel-body').addEventListener('click', (e) => {
+  const btnEdit = e.target.closest('.btn-edit');
+  if (btnEdit) return editAnggota(btnEdit.dataset.id);
+
+  const btnHapus = e.target.closest('.btn-hapus');
+  if (btnHapus) return konfirmasiHapus(btnHapus.dataset.id, btnHapus.dataset.nama);
+});
 
   loadAnggota();
 });

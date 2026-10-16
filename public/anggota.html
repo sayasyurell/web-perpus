@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
@@ -6,7 +6,8 @@
   <title>Kelola Anggota - Perpustakaan Sekolah</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/css/style.css">
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="/vendor/lucide.min.js"></script>
+  <link rel="stylesheet" href="/css/theme.css">
 </head>
 <body class="bg-slate-100 min-h-screen">
 
@@ -16,31 +17,30 @@
     <aside class="w-60 bg-slate-900 text-slate-100 flex-shrink-0 flex flex-col">
       <div class="p-5 border-b border-slate-700">
         <div class="flex items-center gap-2">
-          <img src="/img/logo.png" class="sidebar-logo" alt="Logo">
-          <div>
-            <div class="font-bold text-sm">Perpustakaan</div>
-            <div class="text-xs text-slate-400">Sekolah</div>
+          <img src="/img/logo.png" alt="Logo" style="width:42px;height:42px;object-fit:contain;background:#fff;border-radius:10px;padding:4px;flex-shrink:0;"><div style="display:flex;flex-direction:column;">
+            <div class="font-bold text-sm">SMPN 1 Taman</div>
+            <div class="text-xs text-slate-400">Sidoarjo</div>
           </div>
         </div>
       </div>
 
                   <nav class="flex-1 p-3 space-y-1 text-sm">
-        <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300">
+        <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300" >
           <span>🏠</span> <span>Dashboard</span>
         </a>
-        <a href="/buku.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300">
+        <a href="/buku.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300" >
           <span>📖</span> <span>Buku</span>
         </a>
-        <a href="/anggota.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-600 text-white font-medium">
+        <a href="/anggota.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-600 text-white font-medium" >
           <span>👥</span> <span>Anggota</span>
         </a>
-        <a href="/peminjaman.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300">
+        <a href="/peminjaman.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300" >
           <span>🔄</span> <span>Peminjaman</span>
         </a>
-        <a href="/laporan.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300">
+        <a href="/laporan.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300" >
           <span>📊</span> <span>Laporan</span>
         </a>
-                <a href="/pengaturan.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300">
+                <a href="/pengaturan.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300" >
           <span>⚙️</span> <span>Pengaturan</span>
         </a>
       </nav>

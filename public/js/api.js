@@ -88,3 +88,23 @@ function refreshIcons() {
     init();
   }
 })();
+
+// ================================================================
+// Global event delegation — pengganti onclick inline
+// Pola: <button data-action="fnName" data-id="123" data-str="...">
+// ================================================================
+document.addEventListener('click', (e) => {
+  // Handler data-action
+  const el = e.target.closest('[data-action]');
+  if (el) {
+    const fn = window[el.dataset.action];
+    if (typeof fn === 'function') {
+      const args = [];
+      if (el.dataset.id !== undefined)  args.push(Number(el.dataset.id));
+      if (el.dataset.str !== undefined) args.push(el.dataset.str);
+      try { fn(...args); } catch (err) { console.error('action error:', err); }
+    }
+  }
+  // Helper stop propagation
+  if (e.target.closest('[data-stop]')) e.stopPropagation();
+});

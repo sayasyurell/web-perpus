@@ -111,6 +111,16 @@ db.exec(`
     value       TEXT NOT NULL,
     keterangan  TEXT
   );
+  -- ============ TABEL USERS (untuk login) ============
+  CREATE TABLE IF NOT EXISTS users (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    username        TEXT UNIQUE NOT NULL,
+    password_hash   TEXT NOT NULL,
+    password_salt   TEXT NOT NULL,
+    must_change_pw  INTEGER NOT NULL DEFAULT 0,
+    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_login      DATETIME
+  );
 `);
 
 console.log('✅ Schema database siap');
@@ -186,4 +196,40 @@ if (countAnggota === 0) {
 // ================================================================
 // EXPORT
 // ================================================================
+
+// ================================================================
+// SEED ADMIN — buat akun default jika belum ada
+// ================================================================
+const crypto = require('crypto');
+
+function hashPassword(password, salt = null) {
+  const s = salt || crypto.randomBytes(16).toString('hex');
+  const hash = crypto.scryptSync(password, s, 64).toString('hex');
+  return { hash, salt: s };
+}
+
+const countUsers = db.prepare('SELECT COUNT(*) as n FROM users').get().n;
+if (countUsers === 0) {
+  const randomPassword = crypto.randomBytes(9).toString('base64url');
+  const { hash, salt } = hashPassword(randomPassword);
+  db.prepare(`
+    INSERT INTO users (username, password_hash, password_salt, must_change_pw)
+    VALUES (?, ?, ?, 1)
+  `).run('admin', hash, salt);
+
+  console.log('');
+  console.log('╔════════════════════════════════════════════════════════════╗');
+  console.log('║  🔐 AKUN ADMIN BARU DIBUAT                                ║');
+  console.log('╠════════════════════════════════════════════════════════════╣');
+  console.log(`║  Username : admin                                         ║`);
+  console.log(`║  Password : ${randomPassword.padEnd(45)}║`);
+  console.log('║                                                            ║');
+  console.log('║  ⚠️  CATAT SEKARANG — kata sandi hanya ditampilkan sekali ║');
+  console.log('║  ⚠️  Anda WAJIB mengganti saat login pertama             ║');
+  console.log('╚════════════════════════════════════════════════════════════╝');
+  console.log('');
+}
+
+module.exports = Object.assign(db, { hashPassword });
+
 module.exports = db;
