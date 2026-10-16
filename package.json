@@ -1,6 +1,6 @@
 {
   "name": "web-perpus",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Aplikasi web perpustakaan sekolah",
   "main": "server.js",
   "engines": {
