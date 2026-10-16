@@ -38,13 +38,37 @@ jobs:
           echo "Files copied:"
           ls -la build-portable/app/
 
-      - name: Install Dependencies
+      - name: Install Dependencies + Windows Binary
         run: |
           cd build-portable/app
+          
+          # 1) Install tanpa build native
           npm install --omit=dev --ignore-scripts --no-audit --no-fund 2>&1 | tail -5
-          echo "Dependencies installed:"
-          ls node_modules/ | head -10
-
+          
+          # 2) Download prebuilt better-sqlite3 untuk Windows
+          cd node_modules/better-sqlite3
+          BSQ_VERSION=$(node -p "require('./package.json').version")
+          NODE_ABI=115   # Node.js 20 ABI
+          URL="https://github.com/WiseLibs/better-sqlite3/releases/download/v${BSQ_VERSION}/better-sqlite3-v${BSQ_VERSION}-node-v${NODE_ABI}-win32-x64.tar.gz"
+          
+          echo "=== Downloading better-sqlite3 binary ==="
+          echo "URL: $URL"
+          curl -L -f -o bsq.tar.gz "$URL"
+          tar -xzf bsq.tar.gz
+          rm bsq.tar.gz
+          
+          echo "=== Verify binary ==="
+          ls -la build/Release/
+          file build/Release/better_sqlite3.node
+          
+          # Pastikan file binary ada
+          if [ ! -f "build/Release/better_sqlite3.node" ]; then
+            echo "❌ Binary tidak ditemukan!"
+            exit 1
+          fi
+          
+          echo "✅ Binary OK"
+          
       - name: Create start.bat
         run: |
           cat > build-portable/start.bat << 'EOF'
