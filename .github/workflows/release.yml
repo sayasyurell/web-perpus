@@ -22,53 +22,37 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Download Node.exe Portable
         run: |
           mkdir -p build-portable
-          curl -sL -o build-portable/node.exe https://nodejs.org/dist/v20.18.0/win-x64/node.exe
-          echo "Node.exe size: $(ls -lh build-portable/node.exe | awk '{print $5}')"
+          curl -sL -f -o build-portable/node.exe https://nodejs.org/dist/v22.20.0/win-x64/node.exe
+          SIZE=$(stat -c%s build-portable/node.exe)
+          echo "Node.exe size: $SIZE bytes"
+          if [ "$SIZE" -lt 50000000 ]; then
+            echo "❌ Download gagal"
+            exit 1
+          fi
 
       - name: Copy Project Files
         run: |
           mkdir -p build-portable/app
           cp server.js db.js package.json package-lock.json .gitignore build-portable/app/
           cp -r public routes middleware utils build-portable/app/
-          echo "Files copied:"
-          ls -la build-portable/app/
 
-      - name: Install Dependencies + Windows Binary
+      - name: Install Dependencies
         run: |
           cd build-portable/app
-          
-          # 1) Install tanpa build native
-          npm install --omit=dev --ignore-scripts --no-audit --no-fund 2>&1 | tail -5
-          
-          # 2) Download prebuilt better-sqlite3 untuk Windows
-          cd node_modules/better-sqlite3
-          BSQ_VERSION=$(node -p "require('./package.json').version")
-          NODE_ABI=115   # Node.js 20 ABI
-          URL="https://github.com/WiseLibs/better-sqlite3/releases/download/v${BSQ_VERSION}/better-sqlite3-v${BSQ_VERSION}-node-v${NODE_ABI}-win32-x64.tar.gz"
-          
-          echo "=== Downloading better-sqlite3 binary ==="
-          echo "URL: $URL"
-          curl -L -f -o bsq.tar.gz "$URL"
-          tar -xzf bsq.tar.gz
-          rm bsq.tar.gz
-          
-          echo "=== Verify binary ==="
-          ls -la build/Release/
-          file build/Release/better_sqlite3.node
-          
-          # Pastikan file binary ada
-          if [ ! -f "build/Release/better_sqlite3.node" ]; then
-            echo "❌ Binary tidak ditemukan!"
+          npm install --omit=dev --no-audit --no-fund 2>&1 | tail -5
+          echo "=== Cek prebuilds ==="
+          ls -la node_modules/better-sqlite3/prebuilds/
+          if [ ! -f "node_modules/better-sqlite3/prebuilds/win32-x64.node" ]; then
+            echo "❌ Binary Windows tidak ada!"
             exit 1
           fi
-          
-          echo "✅ Binary OK"
-          
+          echo "✅ Binary Windows OK"
+
       - name: Create start.bat
         run: |
           cat > build-portable/start.bat << 'EOF'
@@ -81,7 +65,6 @@ jobs:
           echo  ========================================
           echo.
           echo  Server berjalan di: http://localhost:3000
-          echo  Jangan tutup jendela ini saat memakai aplikasi.
           echo  Tekan Ctrl+C untuk mematikan server.
           echo.
           timeout /t 2 /nobreak >nul
@@ -111,8 +94,6 @@ jobs:
           cd ..
           echo "=== File ZIP hasil ==="
           ls -lh app-*.zip
-          echo "=== Working directory ==="
-          pwd
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
@@ -135,25 +116,6 @@ jobs:
             - Windows 10/11 (64-bit)
             - Tidak perlu install Node.js (sudah di-bundle)
             - Offline-ready
-
-            ### 🔒 Keamanan
-            - Login + session aman (cookie HttpOnly, SameSite=Strict)
-            - Password hashing scrypt
-            - Rate limit & CSRF protection
-            - XSS & CSV injection protection
-            - Backup aman via SQLite native API
-
-            ### 📋 Fitur Lengkap
-            - 📖 Kelola Buku (CRUD + Import CSV + barcode ISBN)
-            - 👥 Kelola Anggota (CRUD + Import CSV + kartu barcode)
-            - 🔄 Peminjaman & Pengembalian otomatis dengan denda
-            - 🎯 Mode Scan barcode (auto-detect pinjam/kembali)
-            - 📊 Dashboard & Laporan (export CSV + print)
-            - ⚙️ Pengaturan (denda, lama pinjam, backup)
-
-            ### ⚠️ Upgrade dari versi lama
-            - Copy folder `database/` dari instalasi lama ke folder baru
-            - Login dengan password admin baru (ditampilkan di cmd saat pertama start)
           draft: false
           prerelease: false
         env:
