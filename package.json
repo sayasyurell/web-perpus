@@ -9,7 +9,7 @@
 "scripts": {
   "start": "node server.js",
   "dev": "nodemon --ignore public/vendor/ --ignore database/ server.js",
-  "test": "node --test \"test/*.test.js\"",
+"test": "node scripts/test-runner.js",
   "test:auth": "node --test test/auth.test.js",
   "test:unit": "node --test test/security.test.js"
 },
