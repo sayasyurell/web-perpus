@@ -123,7 +123,6 @@ aside nav a.bg-blue-600 svg { opacity: 1; }
   box-shadow: 0 4px 12px rgba(0,0,0,0.2), inset 0 -1px 0 rgba(0,0,0,0.05);
   transition: transform 0.25s ease;
 }
-aside:hover .sidebar-logo { transform: scale(1.05) rotate(-2deg); }
 
 /* ===== MAIN AREA ===== */
 main { position: relative; }

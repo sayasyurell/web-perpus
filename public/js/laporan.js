@@ -1,7 +1,3 @@
-// ================================================================
-// laporan.js — Logika halaman Laporan
-// ================================================================
-
 const state = {
   dari: '', sampai: '', status: '',
   activeTab: 'peminjaman',
@@ -35,7 +31,7 @@ function formatRupiah(n) {
 }
 
 // ================================================================
-// LOAD PEMINJAMAN
+// 1. LOAD PEMINJAMAN
 // ================================================================
 async function loadPeminjaman() {
   const tbody = document.getElementById('tabel-laporan');
@@ -46,16 +42,14 @@ async function loadPeminjaman() {
       dari: state.dari, sampai: state.sampai, status: state.status
     });
 
-    renderTabel(res.data);
-    renderRekap(res.rekap);
-    document.getElementById('periode-label').textContent =
-      `📅 Periode: ${formatTanggal(state.dari)} — ${formatTanggal(state.sampai)}`;
+    renderTabelPeminjaman(res.data);
+    renderRekapPeminjaman(res.rekap);
   } catch (err) {
     tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-10 text-center text-red-500">❌ ${err.message}</td></tr>`;
   }
 }
 
-function renderTabel(list) {
+function renderTabelPeminjaman(list) {
   const tbody = document.getElementById('tabel-laporan');
   if (!list.length) {
     tbody.innerHTML = `<tr><td colspan="8" class="px-4 py-10 text-center text-slate-400">📭 Tidak ada data di periode ini</td></tr>`;
@@ -97,7 +91,7 @@ function renderTabel(list) {
   }).join('');
 }
 
-function renderRekap(r) {
+function renderRekapPeminjaman(r) {
   document.getElementById('rekap-transaksi').textContent = r.total_transaksi || 0;
   document.getElementById('rekap-buku').textContent = r.total_buku || 0;
   document.getElementById('rekap-terlambat').textContent = r.terlambat || 0;
@@ -105,7 +99,7 @@ function renderRekap(r) {
 }
 
 // ================================================================
-// LOAD STATISTIK BUKU
+// 2. LOAD STATISTIK BUKU
 // ================================================================
 async function loadBukuStats() {
   const tbody = document.getElementById('tabel-buku-laporan');
@@ -138,183 +132,202 @@ async function loadBukuStats() {
 }
 
 // ================================================================
-// EXPORT CSV — PEMINJAMAN
+// 3. LOAD KUNJUNGAN (BUKU TAMU)
+// ================================================================
+async function loadKunjungan() {
+  const tbody = document.getElementById('tabel-kunjungan');
+  tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-10 text-center text-slate-400">⏳ Memuat data...</td></tr>`;
+
+  const tujuan = document.getElementById('filter-tujuan').value;
+
+  try {
+    const res = await apiGet('/laporan/kunjungan', {
+      dari: state.dari, sampai: state.sampai, tujuan
+    });
+
+    document.getElementById('rekap-kunjungan-total').textContent = res.rekap.total;
+    document.getElementById('rekap-kunjungan-baca').textContent = res.rekap.totalBaca;
+    document.getElementById('rekap-kunjungan-pinjam').textContent = res.rekap.totalPinjam;
+
+    if (!res.data.length) {
+      tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-10 text-center text-slate-400">📭 Tidak ada pengunjung di periode ini</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = res.data.map((k, i) => `
+      <tr class="border-b border-slate-100 hover:bg-slate-50">
+        <td class="px-4 py-3 text-slate-500">${i + 1}</td>
+        <td class="px-4 py-3 text-slate-600 text-xs">${formatTanggal(k.tanggal)}</td>
+        <td class="px-4 py-3 font-medium text-slate-800">${escapeHtml(k.nama)}</td>
+        <td class="px-4 py-3 font-mono text-xs text-slate-600">${escapeHtml(k.nis)}</td>
+        <td class="px-4 py-3 text-slate-600">${escapeHtml(k.kelas) || '-'}</td>
+        <td class="px-4 py-3 text-center text-slate-600 font-mono text-xs">${k.jam_masuk.split(' ')[1] || k.jam_masuk}</td>
+        <td class="px-4 py-3 text-center">
+          ${k.tujuan === 'pinjam' 
+            ? '<span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold">Pinjam Buku</span>' 
+            : '<span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-semibold">Baca di Tempat</span>'}
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="7" class="px-4 py-10 text-center text-red-500">❌ ${err.message}</td></tr>`;
+  }
+}
+
+function exportKunjunganCSV() {
+  const tujuan = document.getElementById('filter-tujuan').value;
+  window.location.href = `/api/laporan/export-kunjungan?dari=${state.dari}&sampai=${state.sampai}&tujuan=${tujuan}`;
+  toast('Mengunduh CSV...', 'info');
+}
+
+// ================================================================
+// 4. EXPORT & PRINT
 // ================================================================
 function exportPeminjamanCSV() {
   window.location.href = `/api/laporan/export-peminjaman?dari=${state.dari}&sampai=${state.sampai}`;
   toast('Mengunduh CSV...', 'info');
 }
 
-// ================================================================
-// EXPORT CSV — BUKU
-// ================================================================
 function exportBukuCSV() {
-  if (!state.bukuData.length) return toast('Belum ada data untuk diexport', 'warning');
-
+  if (!state.bukuData.length) return toast('Belum ada data', 'warning');
   const header = 'kode_buku,judul,penulis,kategori,stok_total,stok_tersedia,total_dipinjam,sedang_dipinjam';
-  const esc = (v) => {
-    if (v === null || v === undefined) return '';
-    const s = String(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-
+  const esc = (v) => { if(v==null) return ''; const s=String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s; };
   const lines = [header];
-  state.bukuData.forEach(b => {
-    lines.push([b.kode_buku, b.judul, b.penulis, b.kategori, b.stok_total, b.stok_tersedia, b.total_dipinjam, b.sedang_dipinjam]
-      .map(esc).join(','));
-  });
-
+  state.bukuData.forEach(b => lines.push([b.kode_buku, b.judul, b.penulis, b.kategori, b.stok_total, b.stok_tersedia, b.total_dipinjam, b.sedang_dipinjam].map(esc).join(',')));
   const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `statistik_buku_${todayStr()}.csv`;
-  a.click();
-  URL.revokeObjectURL(a.href);
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `statistik_buku_${todayStr()}.csv`; a.click(); URL.revokeObjectURL(a.href);
   toast('CSV ter-download', 'success');
 }
 
-// ================================================================
-// PRINT / PDF — PEMINJAMAN
-// ================================================================
 async function printLaporan() {
   try {
-    const res = await apiGet('/laporan/peminjaman', {
-      dari: state.dari, sampai: state.sampai, status: state.status
-    });
-    const r = res.rekap;
-
-    const rows = res.data.map((p, i) => `
-      <tr>
-        <td class="text-center">${i + 1}</td>
-        <td class="mono">${escapeHtml(p.kode_pinjam)}</td>
-        <td>
-          ${escapeHtml(p.anggota_nama)}<br>
-          <small style="color:#666;font-size:8pt;">${escapeHtml(p.anggota_nis)}${p.anggota_kelas ? ' · ' + escapeHtml(p.anggota_kelas) : ''}</small>
-        </td>
-        <td class="text-center">${formatTanggal(p.tanggal_pinjam)}</td>
-        <td class="text-center">${formatTanggal(p.tanggal_jatuh)}</td>
-        <td class="text-center">${p.jumlah_buku}</td>
-        <td class="text-center">${p.status}</td>
-        <td class="text-right">${p.denda > 0 ? 'Rp ' + p.denda.toLocaleString('id-ID') : '-'}</td>
-      </tr>
+    const res = await apiGet('/laporan/peminjaman', { dari: state.dari, sampai: state.sampai, status: state.status });
+    const rowsHTML = res.data.map((p, i) => `
+      <tr><td style="padding:4px 6px;border-bottom:1px solid #ddd;font-size:11px;">${i + 1}</td><td style="padding:4px 6px;border-bottom:1px solid #ddd;font-size:11px;">${escapeHtml(p.kode_pinjam)}</td><td style="padding:4px 6px;border-bottom:1px solid #ddd;font-size:11px;">${escapeHtml(p.anggota_nama)}<br><small>${escapeHtml(p.anggota_nis)}</small></td><td style="padding:4px 6px;border-bottom:1px solid #ddd;font-size:11px;">${formatTanggal(p.tanggal_pinjam)}</td><td style="padding:4px 6px;border-bottom:1px solid #ddd;font-size:11px;">${formatTanggal(p.tanggal_jatuh)}</td><td style="padding:4px 6px;border-bottom:1px solid #ddd;font-size:11px;text-align:center;">${p.jumlah_buku}</td><td style="padding:4px 6px;border-bottom:1px solid #ddd;font-size:11px;text-align:center;">${p.status}</td><td style="padding:4px 6px;border-bottom:1px solid #ddd;font-size:11px;text-align:right;">${p.denda > 0 ? formatRupiah(p.denda) : '-'}</td></tr>
     `).join('');
 
     document.getElementById('print-area').innerHTML = `
-      <div class="print-page">
-        <div class="print-header">
-          <h1>Perpustakaan Sekolah</h1>
-          <h2>Laporan Peminjaman Buku</h2>
-          <p class="meta">Periode: ${formatTanggal(state.dari)} — ${formatTanggal(state.sampai)}</p>
-        </div>
-
-        <table class="print-table">
-          <thead>
-            <tr>
-              <th style="width:25pt" class="text-center">No</th>
-              <th style="width:75pt">Kode</th>
-              <th>Anggota</th>
-              <th style="width:65pt" class="text-center">Pinjam</th>
-              <th style="width:65pt" class="text-center">Jatuh Tempo</th>
-              <th style="width:35pt" class="text-center">Buku</th>
-              <th style="width:60pt" class="text-center">Status</th>
-              <th style="width:65pt" class="text-right">Denda</th>
-            </tr>
-          </thead>
-          <tbody>${rows || '<tr><td colspan="8" class="text-center" style="padding:20pt;color:#888;">Tidak ada data</td></tr>'}</tbody>
-        </table>
-
-        <div class="print-summary">
-          <div class="row"><span>Total Transaksi</span><span><b>${r.total_transaksi}</b></span></div>
-          <div class="row"><span>Total Buku Dipinjam</span><span><b>${r.total_buku}</b></span></div>
-          <div class="row"><span>Transaksi Terlambat</span><span><b>${r.terlambat}</b></span></div>
-          <div class="row total"><span>Total Denda Terkumpul</span><span>Rp ${r.total_denda.toLocaleString('id-ID')}</span></div>
-        </div>
-
-        <div class="print-signature right">
-          <div class="date">Sidoarjo, ${new Date().toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'})}</div>
-          <div>Kepala Perpustakaan,</div>
-          <div class="line">&nbsp;</div>
-        </div>
-      </div>
-    `;
-
+      <div style="font-family:Arial,sans-serif;padding:20px;">
+        <div style="text-align:center;border-bottom:2px solid #333;padding-bottom:10px;margin-bottom:16px;"><h2 style="margin:0;">📚 PERPUSTAKAAN SEKOLAH</h2><p style="margin:4px 0;font-size:12px;color:#666;">Laporan Peminjaman · ${formatTanggal(state.dari)} — ${formatTanggal(state.sampai)}</p></div>
+        <table style="width:100%;font-size:11px;border-collapse:collapse;"><thead><tr style="background:#f0f0f0;"><th style="padding:6px;text-align:left;border-bottom:2px solid #333;">No</th><th style="padding:6px;text-align:left;border-bottom:2px solid #333;">Kode</th><th style="padding:6px;text-align:left;border-bottom:2px solid #333;">Anggota</th><th style="padding:6px;text-align:left;border-bottom:2px solid #333;">Pinjam</th><th style="padding:6px;text-align:left;border-bottom:2px solid #333;">Jatuh Tempo</th><th style="padding:6px;text-align:center;border-bottom:2px solid #333;">Buku</th><th style="padding:6px;text-align:center;border-bottom:2px solid #333;">Status</th><th style="padding:6px;text-align:right;border-bottom:2px solid #333;">Denda</th></tr></thead><tbody>${rowsHTML || '<tr><td colspan="8" style="padding:20px;text-align:center;color:#888;">Tidak ada data</td></tr>'}</tbody></table>
+        <div style="margin-top:16px;padding:10px;background:#f9f9f9;border-radius:4px;font-size:12px;"><b>Rekap:</b> Transaksi: ${res.rekap.total_transaksi} · Buku: ${res.rekap.total_buku} · Terlambat: ${res.rekap.terlambat} · Denda: ${formatRupiah(res.rekap.total_denda)}</div>
+      </div>`;
     window.print();
-  } catch (err) {
-    toast(err.message, 'error');
-  }
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+async function printKunjungan() {
+  try {
+    const tujuan = document.getElementById('filter-tujuan').value;
+    const res = await apiGet('/laporan/kunjungan', { dari: state.dari, sampai: state.sampai, tujuan });
+    const rowsHTML = res.data.map((k, i) => `
+      <tr><td style="padding:4px 8px;border-bottom:1px solid #ddd;font-size:11px;text-align:center;">${i + 1}</td><td style="padding:4px 8px;border-bottom:1px solid #ddd;font-size:11px;">${formatTanggal(k.tanggal)}</td><td style="padding:4px 8px;border-bottom:1px solid #ddd;font-size:11px;">${escapeHtml(k.nama)}</td><td style="padding:4px 8px;border-bottom:1px solid #ddd;font-size:11px;">${escapeHtml(k.nis)}</td><td style="padding:4px 8px;border-bottom:1px solid #ddd;font-size:11px;text-align:center;">${k.jam_masuk.split(' ')[1] || k.jam_masuk}</td><td style="padding:4px 8px;border-bottom:1px solid #ddd;font-size:11px;text-align:center;">${k.tujuan === 'pinjam' ? 'Pinjam' : 'Baca'}</td></tr>
+    `).join('');
+
+    document.getElementById('print-area').innerHTML = `
+      <div style="font-family:Arial,sans-serif;padding:20px;">
+        <div style="text-align:center;border-bottom:2px solid #333;padding-bottom:10px;margin-bottom:16px;"><h2 style="margin:0;">BUKU TAMU PERPUSTAKAAN</h2><p style="margin:4px 0;font-size:12px;color:#666;">Periode: ${formatTanggal(state.dari)} — ${formatTanggal(state.sampai)}</p></div>
+        <table style="width:100%;font-size:11px;border-collapse:collapse;"><thead><tr style="background:#f0f0f0;"><th style="padding:6px;text-align:center;border-bottom:2px solid #333;width:30px;">No</th><th style="padding:6px;text-align:left;border-bottom:2px solid #333;">Tanggal</th><th style="padding:6px;text-align:left;border-bottom:2px solid #333;">Nama</th><th style="padding:6px;text-align:left;border-bottom:2px solid #333;">NIS</th><th style="padding:6px;text-align:center;border-bottom:2px solid #333;">Jam</th><th style="padding:6px;text-align:center;border-bottom:2px solid #333;">Tujuan</th></tr></thead><tbody>${rowsHTML || '<tr><td colspan="6" style="padding:20px;text-align:center;color:#888;">Tidak ada data</td></tr>'}</tbody></table>
+        <div style="margin-top:16px;padding:10px;background:#f9f9f9;border-radius:4px;font-size:12px;"><b>Rekap:</b> Total Pengunjung: ${res.rekap.total} · Baca: ${res.rekap.totalBaca} · Pinjam: ${res.rekap.totalPinjam}</div>
+      </div>`;
+    window.print();
+  } catch (err) { toast(err.message, 'error'); }
 }
 
 // ================================================================
-// TAB SWITCH
+// 5. TAB SWITCH & INIT
 // ================================================================
 function switchTab(tab) {
   state.activeTab = tab;
   const btnP = document.getElementById('tab-peminjaman');
   const btnB = document.getElementById('tab-buku');
+  const btnK = document.getElementById('tab-kunjungan');
   const viewP = document.getElementById('view-peminjaman');
   const viewB = document.getElementById('view-buku');
+  const viewK = document.getElementById('view-kunjungan');
 
+  // Class dasar (Kunci: flex items-center gap-2 rounded-none)
+  const baseClass = 'flex items-center gap-2 px-4 py-2 font-medium border-b-2 -mb-px rounded-none transition-colors';
+  
+  // Reset semua ke tidak aktif
+  btnP.className = `${baseClass} text-slate-500 hover:text-slate-800 border-transparent`;
+  btnB.className = `${baseClass} text-slate-500 hover:text-slate-800 border-transparent`;
+  btnK.className = `${baseClass} text-slate-500 hover:text-slate-800 border-transparent`;
+  
+  // Sembunyikan semua view
+  viewP.classList.add('hidden');
+  viewB.classList.add('hidden');
+  viewK.classList.add('hidden');
+
+  // Aktifkan yang dipilih
   if (tab === 'peminjaman') {
-    btnP.className = 'px-4 py-2 font-medium text-blue-600 border-b-2 border-blue-600 -mb-px';
-    btnB.className = 'px-4 py-2 font-medium text-slate-500 hover:text-slate-800 border-b-2 border-transparent -mb-px';
+    btnP.className = `${baseClass} text-blue-600 border-blue-600`;
     viewP.classList.remove('hidden');
-    viewB.classList.add('hidden');
-  } else {
-    btnB.className = 'px-4 py-2 font-medium text-blue-600 border-b-2 border-blue-600 -mb-px';
-    btnP.className = 'px-4 py-2 font-medium text-slate-500 hover:text-slate-800 border-b-2 border-transparent -mb-px';
+    document.getElementById('wrap-filter-status').style.display = 'block';
+  } else if (tab === 'buku') {
+    btnB.className = `${baseClass} text-blue-600 border-blue-600`;
     viewB.classList.remove('hidden');
-    viewP.classList.add('hidden');
+    document.getElementById('wrap-filter-status').style.display = 'none';
     if (!state.bukuData.length) loadBukuStats();
+  } else if (tab === 'kunjungan') {
+    btnK.className = `${baseClass} text-blue-600 border-blue-600`;
+    viewK.classList.remove('hidden');
+    document.getElementById('wrap-filter-status').style.display = 'none';
+    loadKunjungan();
   }
 }
 
-// ================================================================
-// INIT
-// ================================================================
 document.addEventListener('DOMContentLoaded', () => {
-  // Default periode: 30 hari terakhir
   const today = todayStr();
   state.dari = addDaysStr(today, -30);
   state.sampai = today;
   document.getElementById('filter-dari').value = state.dari;
   document.getElementById('filter-sampai').value = state.sampai;
 
-  // Tab
+  // Tabs
   document.getElementById('tab-peminjaman').addEventListener('click', () => switchTab('peminjaman'));
   document.getElementById('tab-buku').addEventListener('click', () => switchTab('buku'));
+  document.getElementById('tab-kunjungan').addEventListener('click', () => switchTab('kunjungan'));
 
-  // Filter
+  // Filter Actions
   document.getElementById('btn-terapkan').addEventListener('click', () => {
     state.dari = document.getElementById('filter-dari').value || todayStr();
     state.sampai = document.getElementById('filter-sampai').value || todayStr();
     state.status = document.getElementById('filter-status').value;
-    loadPeminjaman();
+    
+    if (state.activeTab === 'peminjaman') loadPeminjaman();
+    else if (state.activeTab === 'kunjungan') loadKunjungan();
   });
 
-  // Preset
+  // Presets
   document.getElementById('btn-preset-hari').addEventListener('click', () => {
     state.dari = todayStr(); state.sampai = todayStr();
     document.getElementById('filter-dari').value = state.dari;
     document.getElementById('filter-sampai').value = state.sampai;
-    loadPeminjaman();
+    if (state.activeTab === 'peminjaman') loadPeminjaman(); else loadKunjungan();
   });
   document.getElementById('btn-preset-minggu').addEventListener('click', () => {
     state.sampai = todayStr(); state.dari = addDaysStr(state.sampai, -6);
     document.getElementById('filter-dari').value = state.dari;
     document.getElementById('filter-sampai').value = state.sampai;
-    loadPeminjaman();
+    if (state.activeTab === 'peminjaman') loadPeminjaman(); else loadKunjungan();
   });
   document.getElementById('btn-preset-bulan').addEventListener('click', () => {
     state.sampai = todayStr(); state.dari = addDaysStr(state.sampai, -29);
     document.getElementById('filter-dari').value = state.dari;
     document.getElementById('filter-sampai').value = state.sampai;
-    loadPeminjaman();
+    if (state.activeTab === 'peminjaman') loadPeminjaman(); else loadKunjungan();
   });
 
-  // Export & print
+  // Filter Tujuan (Khusus Buku Tamu)
+  document.getElementById('filter-tujuan').addEventListener('change', loadKunjungan);
+
+  // Export & Print
   document.getElementById('btn-export-csv').addEventListener('click', exportPeminjamanCSV);
   document.getElementById('btn-print-laporan').addEventListener('click', printLaporan);
   document.getElementById('btn-export-buku-csv').addEventListener('click', exportBukuCSV);
+  document.getElementById('btn-export-kunjungan').addEventListener('click', exportKunjunganCSV);
+  document.getElementById('btn-print-kunjungan').addEventListener('click', printKunjungan);
 
   // Load awal
   loadPeminjaman();

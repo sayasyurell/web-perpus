@@ -85,6 +85,17 @@ db.exec(`
     FOREIGN KEY (anggota_id) REFERENCES anggota(id) ON DELETE RESTRICT
   );
 
+    -- ============ TABEL KUNJUNGAN (BUKU TAMU) ============
+  CREATE TABLE IF NOT EXISTS kunjungan (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    anggota_id  INTEGER NOT NULL,
+    tanggal     DATE NOT NULL,
+    jam_masuk   DATETIME NOT NULL,
+    tujuan      TEXT DEFAULT 'baca', -- 'baca' atau 'pinjam'
+    FOREIGN KEY (anggota_id) REFERENCES anggota(id) ON DELETE CASCADE
+  );
+  CREATE INDEX IF NOT EXISTS idx_kunjungan_tgl ON kunjungan(tanggal);
+
   CREATE INDEX IF NOT EXISTS idx_pinjam_anggota ON peminjaman(anggota_id);
   CREATE INDEX IF NOT EXISTS idx_pinjam_status  ON peminjaman(status);
   CREATE INDEX IF NOT EXISTS idx_pinjam_tgl     ON peminjaman(tanggal_pinjam);

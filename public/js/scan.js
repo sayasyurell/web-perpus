@@ -122,43 +122,32 @@ async function processScan(kode) {
     if (res.tipe === 'buku') {
       const existing = state.bukuList.find(b => b.id === res.data.id);
       if (existing) {
-        beepWarn();
-        showStatus('Sudah Discan', res.data.judul, 'warn', '⚠️');
-        return;
+        beepWarn(); showStatus('Sudah Discan', res.data.judul, 'warn'); return;
       }
       state.bukuList.push({ id: res.data.id, kode_buku: res.data.kode_buku, judul: res.data.judul });
       beepOk();
-      showStatus('Buku Ditambah', res.data.judul, 'success', '📖');
+      showStatus('Buku Ditambah', res.data.judul, 'success');
       addLog('📖 + ' + escapeHtml(res.data.judul), 'success');
       renderList();
-
-      if (state.bukuList.length === 1) {
-        showStatus('Lanjut Scan', 'Scan buku lain atau scan kartu anggota', 'info', '📚');
+      
+    } else if (res.tipe === 'anggota') {
+      // DETEKSI NIAT: Jika ada buku di keranjang = Pinjam. Jika kosong = Baca.
+      if (state.bukuList.length > 0) {
+        await prosesSemua(res.data, 'pinjam'); 
+      } else {
+        await prosesTamu(res.data, 'baca');    
       }
-      return;
-    }
-
-    if (res.tipe === 'anggota') {
-      if (state.bukuList.length === 0) {
-        beepErr();
-        showStatus('Scan Buku Dulu', 'Belum ada buku yang discan', 'error', '⚠️');
-        addLog('⚠️ Scan kartu tanpa buku', 'warn');
-        return;
-      }
-      await prosesSemua(res.data);
-      return;
     }
   } catch (err) {
     beepErr();
-    showStatus('Tidak Dikenali', err.message, 'error', '❌');
-    addLog('❌ ' + err.message, 'error');
+    showStatus('Tidak Dikenali', err.message, 'error');
   }
 }
 
 // ================================================================
 // PROSES SEMUA (kembali + pinjam)
 // ================================================================
-async function prosesSemua(anggota) {
+async function prosesSemua(anggota, tujuan = 'pinjam') {
   try {
     showStatus('Memproses...', anggota.nama, 'info', '⏳');
     addLog('👤 ' + escapeHtml(anggota.nama) + ' (' + anggota.nis + ') — proses ' + state.bukuList.length + ' buku', 'info');
@@ -178,6 +167,9 @@ async function prosesSemua(anggota) {
     addLog(`✅ Selesai — ${totalKembali} kembali, ${totalPinjam} pinjam`, 'success');
 
     tampilkanSukses(anggota, res);
+
+    // Catat ke Buku Tamu sebagai 'pinjam'
+    await apiPost('/scan/tamu', { anggota_id: anggota.id, tujuan: 'pinjam' });
 
     state.bukuList = [];
     renderList();
@@ -241,6 +233,52 @@ function tampilkanSukses(anggota, res) {
   document.getElementById('sukses-detail').innerHTML = html;
   document.getElementById('modal-sukses').style.display = 'flex';
   if (window.lucide) lucide.createIcons();
+}
+
+// ================================================================
+// FUNGSI BARU: PROSES BUKU TAMU (OTOMATIS)
+// ================================================================
+async function prosesTamu(anggota, tujuan = 'baca') {
+  try {
+    const res = await apiPost('/scan/tamu', { anggota_id: anggota.id, tujuan });
+    const teksTujuan = tujuan === 'pinjam' ? 'MEMINJAM BUKU' : 'BACA DI TEMPAT';
+    
+    if (res.tipe === 'masuk') {
+      beepOk(); beepOk();
+      document.getElementById('status-box').className = `card p-8 text-center shadow-lg border-2 transition-all bg-green-50 border-green-300`;
+      // PERHATIKAN: ID di bawah ini menggunakan status-icon-wrap
+      document.getElementById('status-icon-wrap').innerHTML = `<svg class="w-16 h-16 mx-auto text-green-700" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+      document.getElementById('status-text').className = `text-3xl font-bold mt-4 text-green-700`;
+      document.getElementById('status-text').textContent = res.anggota.nama.toUpperCase();
+      
+      document.getElementById('status-sub').innerHTML = `
+        <div class="text-lg mt-2 font-medium">Selamat Datang!</div>
+        <div class="text-sm mt-2 text-slate-500 font-semibold uppercase">${teksTujuan}</div>
+        <div class="text-sm mt-1 text-slate-500">Jam ${res.waktu}</div>
+      `;
+      addLog(`📥 Masuk: ${res.anggota.nama} (${teksTujuan})`, 'success');
+
+    } else if (res.tipe === 'sudah') {
+      beepWarn(); 
+      document.getElementById('status-box').className = `card p-8 text-center shadow-lg border-2 transition-all bg-blue-50 border-blue-300`;
+      document.getElementById('status-icon-wrap').innerHTML = `<svg class="w-16 h-16 mx-auto text-blue-700" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>`;
+      document.getElementById('status-text').className = `text-3xl font-bold mt-4 text-blue-700`;
+      document.getElementById('status-text').textContent = res.anggota.nama.toUpperCase();
+      
+      document.getElementById('status-sub').innerHTML = `
+        <div class="text-lg mt-2 font-medium">Anda sudah tercatat hari ini.</div>
+        <div class="text-sm mt-1 text-slate-500">Silakan nikmati fasilitas perpustakaan.</div>
+      `;
+      addLog(`ℹ️ ${res.anggota.nama} sudah discan hari ini`, 'info');
+    }
+
+    setTimeout(() => { 
+      showStatus('Siap Scan', 'Scan Buku untuk Pinjam, atau Kartu untuk Baca', 'info', 'book-open'); 
+    }, 3000);
+
+  } catch (err) {
+    beepErr(); showStatus('Gagal', err.message, 'error');
+  }
 }
 
 // ================================================================

@@ -1,20 +1,10 @@
-// ================================================================
-// routes/laporan.js — Dashboard & Laporan
-// ================================================================
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const { escapeCSV } = require('../utils/csv');
-function todayStr() {
-  const d = new Date();
-  return d.getFullYear() + '-' +
-    String(d.getMonth() + 1).padStart(2, '0') + '-' +
-    String(d.getDate()).padStart(2, '0');
-}
-
 
 // ================================================================
-// GET /api/laporan/dashboard
+// DASHBOARD
 // ================================================================
 router.get('/dashboard', (req, res) => {
   try {
@@ -74,7 +64,7 @@ router.get('/dashboard', (req, res) => {
       LIMIT 5
     `).all();
 
-    // Peminjaman 7 hari terakhir (untuk mini chart)
+    // Peminjaman 7 hari terakhir
     const chart7 = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
@@ -88,7 +78,7 @@ router.get('/dashboard', (req, res) => {
       chart7.push({ tanggal: ymd, jumlah: n });
     }
 
-    // Buku stok menipis (stok_tersedia <= 2 dan > 0)
+    // Buku stok menipis
     const stokMenipis = db.prepare(`
       SELECT id, kode_buku, judul, stok_tersedia, stok_total
       FROM buku
@@ -106,13 +96,20 @@ router.get('/dashboard', (req, res) => {
       }
     });
   } catch (err) {
-    console.error('[GET /laporan/dashboard error]', err.message, err.stack);
+    console.error('GET /laporan/dashboard error:', err);
     res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+}
+
 // ================================================================
-// GET /api/laporan/peminjaman?dari=&sampai=&status=
+// 1. LAPORAN PEMINJAMAN
 // ================================================================
 router.get('/peminjaman', (req, res) => {
   try {
@@ -144,7 +141,6 @@ router.get('/peminjaman', (req, res) => {
       ORDER BY p.tanggal_pinjam DESC, p.id DESC
     `).all(params);
 
-    // Rekap
     const rekap = {
       total_transaksi: rows.length,
       total_buku: rows.reduce((s, r) => s + (r.jumlah_buku || 0), 0),
@@ -159,14 +155,11 @@ router.get('/peminjaman', (req, res) => {
 
     res.json({ status: 'ok', data: rows, rekap, periode: { dari, sampai } });
   } catch (err) {
-    console.error('[GET /laporan/peminjaman error]', err.message, err.stack);
+    console.error('GET /laporan/peminjaman error:', err);
     res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
   }
 });
 
-// ================================================================
-// GET /api/laporan/export-peminjaman?dari=&sampai= — CSV
-// ================================================================
 router.get('/export-peminjaman', (req, res) => {
   try {
     const dari   = req.query.dari   || todayStr();
@@ -175,8 +168,7 @@ router.get('/export-peminjaman', (req, res) => {
     const rows = db.prepare(`
       SELECT
         p.kode_pinjam, p.tanggal_pinjam, p.tanggal_jatuh, p.tanggal_kembali,
-        p.status, p.denda,
-        a.nis AS anggota_nis, a.nama AS anggota_nama, a.kelas AS anggota_kelas,
+        p.status, p.denda, a.nis AS anggota_nis, a.nama AS anggota_nama, a.kelas AS anggota_kelas,
         (SELECT COUNT(*) FROM peminjaman_detail WHERE peminjaman_id = p.id) as jumlah_buku,
         (SELECT GROUP_CONCAT(b.judul, ' | ') FROM peminjaman_detail pd
            JOIN buku b ON b.id = pd.buku_id WHERE pd.peminjaman_id = p.id) as judul_buku
@@ -201,12 +193,12 @@ router.get('/export-peminjaman', (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="laporan_peminjaman_${dari}_${sampai}.csv"`);
     res.send('\uFEFF' + lines.join('\n'));
   } catch (err) {
-    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
+    res.status(500).json({ status: 'error', message: 'Gagal export data' });
   }
 });
 
 // ================================================================
-// GET /api/laporan/buku — Semua buku + statistik peminjaman
+// 2. STATISTIK BUKU
 // ================================================================
 router.get('/buku', (req, res) => {
   try {
@@ -225,6 +217,87 @@ router.get('/buku', (req, res) => {
     res.json({ status: 'ok', data: rows });
   } catch (err) {
     res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
+  }
+});
+
+// ================================================================
+// 3. BUKU TAMU (KUNJUNGAN)
+// ================================================================
+router.get('/kunjungan', (req, res) => {
+  try {
+    const dari   = req.query.dari   || todayStr();
+    const sampai = req.query.sampai || todayStr();
+    const tujuan = req.query.tujuan || '';
+
+    let query = `
+      SELECT k.id, k.tanggal, k.jam_masuk, k.tujuan,
+             a.nis, a.nama, a.kelas, a.jenis
+      FROM kunjungan k
+      JOIN anggota a ON a.id = k.anggota_id
+      WHERE k.tanggal BETWEEN ? AND ?
+    `;
+    const params = [dari, sampai];
+
+    if (tujuan) {
+      query += ` AND k.tujuan = ?`;
+      params.push(tujuan);
+    }
+
+    query += ` ORDER BY k.jam_masuk DESC`;
+
+    const rows = db.prepare(query).all(...params);
+
+    const total = rows.length;
+    const totalBaca = rows.filter(r => r.tujuan === 'baca').length;
+    const totalPinjam = rows.filter(r => r.tujuan === 'pinjam').length;
+
+    res.json({
+      status: 'ok',
+      data: rows,
+      rekap: { total, totalBaca, totalPinjam }
+    });
+  } catch (err) {
+    console.error('GET /laporan/kunjungan error:', err);
+    res.status(500).json({ status: 'error', message: 'Terjadi kesalahan pada server' });
+  }
+});
+
+router.get('/export-kunjungan', (req, res) => {
+  try {
+    const dari   = req.query.dari   || todayStr();
+    const sampai = req.query.sampai || todayStr();
+    const tujuan = req.query.tujuan || '';
+
+    let query = `
+      SELECT k.tanggal, k.jam_masuk, a.nis, a.nama, a.kelas, a.jenis, k.tujuan
+      FROM kunjungan k
+      JOIN anggota a ON a.id = k.anggota_id
+      WHERE k.tanggal BETWEEN ? AND ?
+    `;
+    const params = [dari, sampai];
+
+    if (tujuan) {
+      query += ` AND k.tujuan = ?`;
+      params.push(tujuan);
+    }
+    query += ` ORDER BY k.jam_masuk DESC`;
+
+    const rows = db.prepare(query).all(...params);
+
+    const header = 'tanggal,jam_masuk,nis,nama,kelas,jenis,tujuan';
+    const lines = [header];
+
+    rows.forEach(r => {
+      lines.push([
+        r.tanggal, r.jam_masuk, r.nis, r.nama, r.kelas || '', r.jenis, r.tujuan
+      ].map(escapeCSV).join(','));
+    });
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="buku_tamu_${dari}_${sampai}.csv"`);
+    res.send('\uFEFF' + lines.join('\n'));
+  } catch (err) {
+    res.status(500).json({ status: 'error', message: 'Gagal export data' });
   }
 });
 

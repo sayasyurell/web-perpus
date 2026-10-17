@@ -39,7 +39,7 @@
       box-shadow: 0 0 0 4px rgba(16,185,129,0.12), 0 4px 12px -4px rgba(16,185,129,0.25);
     }
 
-    /* Status icon — pakai SVG, bukan emoji */
+    /* Status icon */
     #status-icon-wrap {
       width: 68px; height: 68px; margin: 0 auto 14px;
       border-radius: 18px;
@@ -166,14 +166,14 @@
             Scan Barcode
           </div>
           <input id="scan-input" type="text" autocomplete="off" class="scan-input"
-            placeholder="Ketik atau scan barcode di sini...">
+            placeholder="Scan Buku (untuk pinjam) ATAU Scan NIS (untuk baca)...">
           <div style="display: flex; align-items: center; gap: 8px; margin-top: 12px;
                       font-size: 0.75rem; color: #94a3b8;">
             <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
             </svg>
-            <span>Fokus otomatis · Enter untuk submit · Esc untuk keluar</span>
+            <span>💡 Scan Buku dulu jika ingin meminjam. Langsung scan Kartu jika hanya membaca.</span>
           </div>
         </div>
 
@@ -261,7 +261,7 @@
   <script src="/js/api.js"></script>
   <script>
   // ================================================================
-  // SVG helper — tidak butuh Lucide library
+  // SVG helper
   // ================================================================
   const SVG = {
     book:   '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
@@ -384,6 +384,7 @@
   async function processScan(kode) {
     try {
       const res = await apiGet('/scan/lookup/' + encodeURIComponent(kode));
+      
       if (res.tipe === 'buku') {
         if (state.bukuList.find(b => b.id === res.data.id)) {
           beepWarn(); showStatus('Sudah Discan', res.data.judul, 'warn'); return;
@@ -395,12 +396,14 @@
         renderList();
         return;
       }
+      
       if (res.tipe === 'anggota') {
-        if (state.bukuList.length === 0) {
-          beepErr(); showStatus('Scan Buku Dulu', 'Belum ada buku yang discan', 'error');
-          addLog('Scan kartu tanpa buku', 'warn'); return;
+        // JIKA SCAN KARTU: Deteksi niat siswa secara otomatis
+        if (state.bukuList.length > 0) {
+          await prosesSemua(res.data, 'pinjam'); // Keranjang ada isi = Niat Pinjam
+        } else {
+          await prosesTamu(res.data, 'baca');    // Keranjang kosong = Niat Baca di Tempat
         }
-        await prosesSemua(res.data);
       }
     } catch (err) {
       beepErr(); showStatus('Tidak Dikenali', err.message, 'error');
@@ -408,29 +411,90 @@
     }
   }
 
-  async function prosesSemua(anggota) {
+  // ================================================================
+  // FUNGSI PINJAM BUKU
+  // ================================================================
+  async function prosesSemua(anggota, niat) {
     try {
       showStatus('Memproses...', anggota.nama, 'processing');
       addLog(escapeHtml(anggota.nama) + ' (' + anggota.nis + ') — proses ' + state.bukuList.length + ' buku', 'info');
+      
+      // 1. Simpan Peminjaman
       const res = await apiPost('/scan/proses', {
         anggota_id: anggota.id,
         buku_list: state.bukuList.map(b => ({ buku_id: b.id, jumlah: 1 }))
       });
+
+      // 2. Catat ke Buku Tamu sebagai 'pinjam'
+      await apiPost('/scan/tamu', { anggota_id: anggota.id, tujuan: 'pinjam' });
+
       beepBig();
       const nK = res.pengembalian ? res.pengembalian.length : 0;
       const nP = res.peminjaman ? res.peminjaman.buku.length : 0;
       showStatus('Selesai', nK + ' kembali, ' + nP + ' pinjam', 'success');
       addLog('Selesai — ' + nK + ' kembali, ' + nP + ' pinjam', 'success');
       tampilkanSukses(anggota, res);
+      
       state.bukuList = [];
       renderList();
+      
       setTimeout(() => {
         document.getElementById('modal-sukses').style.display = 'none';
-        showStatus('Siap Scan Buku', 'Scan buku untuk peminjaman atau pengembalian berikutnya', 'info');
+        showStatus('Siap Scan', 'Scan buku untuk pinjam, atau kartu untuk baca', 'info');
       }, 3000);
     } catch (err) {
       beepErr(); showStatus('Gagal', err.message, 'error');
       addLog(err.message, 'error');
+    }
+  }
+
+  // ================================================================
+  // FUNGSI BARU: BUKU TAMU (BACA DI TEMPAT)
+  // ================================================================
+  async function prosesTamu(anggota, tujuan = 'baca') {
+    try {
+      const res = await apiPost('/scan/tamu', { anggota_id: anggota.id, tujuan });
+      const teksTujuan = tujuan === 'pinjam' ? 'MEMINJAM BUKU' : 'BACA DI TEMPAT';
+      
+      if (res.tipe === 'masuk') {
+        beepOk(); setTimeout(beepOk, 150);
+        
+        document.getElementById('status-box').className = `card p-8 text-center shadow-lg border-2 transition-all bg-green-50 border-green-300`;
+        document.getElementById('status-icon-wrap').className = 'success';
+        document.getElementById('status-icon-wrap').innerHTML = svgIcon('check', 34);
+        document.getElementById('status-text').className = `text-3xl font-bold mt-4`;
+        document.getElementById('status-text').style.color = '#047857';
+        document.getElementById('status-text').textContent = res.anggota.nama.toUpperCase();
+        
+        document.getElementById('status-sub').innerHTML = `
+          <div class="text-lg mt-2 font-medium">Selamat Datang!</div>
+          <div class="text-sm mt-2 text-slate-500 font-semibold uppercase">${teksTujuan}</div>
+          <div class="text-sm mt-1 text-slate-500">Jam ${res.waktu}</div>
+        `;
+        addLog(`📥 Masuk: ${res.anggota.nama} (${teksTujuan})`, 'success');
+
+      } else if (res.tipe === 'sudah') {
+        beepWarn(); 
+        document.getElementById('status-box').className = `card p-8 text-center shadow-lg border-2 transition-all bg-blue-50 border-blue-300`;
+        document.getElementById('status-icon-wrap').className = 'processing';
+        document.getElementById('status-icon-wrap').innerHTML = svgIcon('alert', 34);
+        document.getElementById('status-text').className = `text-3xl font-bold mt-4`;
+        document.getElementById('status-text').style.color = '#1d4ed8';
+        document.getElementById('status-text').textContent = res.anggota.nama.toUpperCase();
+        
+        document.getElementById('status-sub').innerHTML = `
+          <div class="text-lg mt-2 font-medium">Anda sudah tercatat hari ini.</div>
+          <div class="text-sm mt-1 text-slate-500">Silakan nikmati fasilitas perpustakaan.</div>
+        `;
+        addLog(`ℹ️ ${res.anggota.nama} sudah discan hari ini`, 'info');
+      }
+
+      setTimeout(() => { 
+        showStatus('Siap Scan', 'Scan Buku untuk pinjam, atau Kartu untuk baca', 'info'); 
+      }, 3000);
+
+    } catch (err) {
+      beepErr(); showStatus('Gagal', err.message, 'error');
     }
   }
 
