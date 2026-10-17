@@ -216,12 +216,16 @@
   .print-card-barcode {
     text-align: center;
     margin-top: 3pt;
+    height: 38pt; /* Kunci tinggi area barcode */
   }
+  
   .print-card-barcode svg {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 0 auto;
+    width: 90% !important;
+    height: 35pt !important; /* Kunci ukuran SVG agar tidak hilang */
+    display: block !important;
+    margin: 0 auto !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .print-card-footer {

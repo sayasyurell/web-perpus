@@ -249,7 +249,10 @@ async function cetakKartu() {
       <div class="print-cards-container">${html}</div>
     </div>
   `;
-  setTimeout(() => { renderAllBarcodes(); setTimeout(() => window.print(), 150); }, 50);
+  setTimeout(() => { 
+  renderAllBarcodes(); 
+  setTimeout(() => window.print(), 300); // Naikkan ke 300ms
+}, 100);
 }
 
 async function cetakSemuaKartu() {
@@ -267,7 +270,10 @@ async function cetakSemuaKartu() {
       <div class="print-cards-container">${cards.join('')}</div>
     </div>
   `;
-  setTimeout(() => { renderAllBarcodes(); setTimeout(() => window.print(), 150); }, 50);
+  setTimeout(() => { 
+  renderAllBarcodes(); 
+  setTimeout(() => window.print(), 300); // Naikkan ke 300ms
+}, 100);
 }
 
 // ================================================================
