@@ -1,0 +1,14 @@
+node_modules/
+database/*.db
+database/*.db-journal
+database/*.db-shm
+database/*.db-wal
+*.log
+.env
+backups/
+.DS_Store
+database_backup_*/
+*.db
+*.db-shm
+*.db-wal
+*.db-journal

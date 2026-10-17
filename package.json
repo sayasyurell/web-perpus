@@ -1,0 +1,25 @@
+{
+  "name": "web-perpus",
+  "version": "1.1.1",
+  "description": "Aplikasi web perpustakaan sekolah",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22"
+  },
+"scripts": {
+  "start": "node server.js",
+  "dev": "nodemon --ignore public/vendor/ --ignore database/ server.js",
+  "test": "node --test \"test/*.test.js\"",
+  "test:auth": "node --test test/auth.test.js",
+  "test:unit": "node --test test/security.test.js"
+},
+
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "cors": "^2.8.5",
+    "express": "^4.21.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
+}

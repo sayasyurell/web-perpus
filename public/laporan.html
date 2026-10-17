@@ -1,0 +1,203 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="view-transition" content="same-origin">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laporan - Perpustakaan Sekolah</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/vendor/lucide.min.js"></script>
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body class="bg-slate-100 min-h-screen">
+
+  <div class="flex min-h-screen">
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="w-60 bg-slate-900 text-slate-100 flex-shrink-0 flex flex-col">
+      <div class="p-5 border-b border-slate-700">
+        <div class="flex items-center gap-2">
+          <img src="/img/logo.png" alt="Logo" style="width:42px;height:42px;object-fit:contain;background:#fff;border-radius:10px;padding:4px;flex-shrink:0;"><div style="display:flex;flex-direction:column;">
+            <div class="font-bold text-sm">SMPN 1 Taman</div>
+            <div class="text-xs text-slate-400">Sidoarjo</div>
+          </div>
+        </div>
+      </div>
+
+                  <nav class="flex-1 p-3 space-y-1 text-sm">
+        <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300" >
+          <span>🏠</span> <span>Dashboard</span>
+        </a>
+        <a href="/buku.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300" >
+          <span>📖</span> <span>Buku</span>
+        </a>
+        <a href="/anggota.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300" >
+          <span>👥</span> <span>Anggota</span>
+        </a>
+        <a href="/peminjaman.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300" >
+          <span>🔄</span> <span>Peminjaman</span>
+        </a>
+        <a href="/laporan.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-600 text-white font-medium" >
+          <span>📊</span> <span>Laporan</span>
+        </a>
+                <a href="/pengaturan.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300" >
+          <span>⚙️</span> <span>Pengaturan</span>
+        </a>
+      </nav>
+
+      <div class="p-4 border-t border-slate-700 text-xs text-slate-500">v0.6 — Fase 6</div>
+    </aside>
+
+    <!-- ============ MAIN ============ -->
+    <main class="flex-1 p-8 overflow-x-auto">
+
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-slate-800">Laporan Peminjaman</h1>
+        <p class="text-slate-500 text-sm">Filter berdasarkan periode, rekap, dan ekspor data</p>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="flex gap-2 mb-4 border-b border-slate-200">
+        <button id="tab-peminjaman" class="px-4 py-2 font-medium text-blue-600 border-b-2 border-blue-600 -mb-px">
+          📋 Peminjaman
+        </button>
+        <button id="tab-buku" class="px-4 py-2 font-medium text-slate-500 hover:text-slate-800 border-b-2 border-transparent -mb-px">
+          📚 Statistik Buku
+        </button>
+      </div>
+
+      <!-- ============ TAB PEMINJAMAN ============ -->
+      <section id="view-peminjaman">
+        <!-- Filter -->
+        <div class="bg-white p-4 rounded-lg shadow-sm mb-4 flex flex-wrap gap-3 items-end">
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Dari Tanggal</label>
+            <input type="date" id="filter-dari"
+              class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Sampai Tanggal</label>
+            <input type="date" id="filter-sampai"
+              class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">Status</label>
+            <select id="filter-status"
+              class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">Semua</option>
+              <option value="dipinjam">Dipinjam</option>
+              <option value="sebagian">Sebagian Kembali</option>
+              <option value="dikembalikan">Dikembalikan</option>
+            </select>
+          </div>
+          <button id="btn-terapkan"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">
+            🔍 Terapkan
+          </button>
+          <div class="flex gap-2 ml-auto">
+            <button id="btn-preset-hari" class="px-3 py-2 border border-slate-300 rounded-lg text-xs hover:bg-slate-100">Hari Ini</button>
+            <button id="btn-preset-minggu" class="px-3 py-2 border border-slate-300 rounded-lg text-xs hover:bg-slate-100">7 Hari</button>
+            <button id="btn-preset-bulan" class="px-3 py-2 border border-slate-300 rounded-lg text-xs hover:bg-slate-100">30 Hari</button>
+          </div>
+        </div>
+
+        <!-- Rekap -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4" id="rekap-box">
+          <div class="bg-white p-4 rounded-lg shadow-sm">
+            <div class="text-xs text-slate-500 uppercase font-semibold">Transaksi</div>
+            <div class="text-2xl font-bold text-slate-800" id="rekap-transaksi">—</div>
+          </div>
+          <div class="bg-white p-4 rounded-lg shadow-sm">
+            <div class="text-xs text-slate-500 uppercase font-semibold">Buku Dipinjam</div>
+            <div class="text-2xl font-bold text-blue-600" id="rekap-buku">—</div>
+          </div>
+          <div class="bg-white p-4 rounded-lg shadow-sm">
+            <div class="text-xs text-slate-500 uppercase font-semibold">Terlambat</div>
+            <div class="text-2xl font-bold text-red-600" id="rekap-terlambat">—</div>
+          </div>
+          <div class="bg-white p-4 rounded-lg shadow-sm">
+            <div class="text-xs text-slate-500 uppercase font-semibold">Total Denda</div>
+            <div class="text-2xl font-bold text-amber-600" id="rekap-denda">—</div>
+          </div>
+        </div>
+
+        <!-- Export -->
+        <div class="flex gap-2 mb-3">
+          <button id="btn-export-csv"
+            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium flex items-center gap-2">
+            📥 Export CSV
+          </button>
+          <button id="btn-print-laporan"
+            class="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg text-sm font-medium flex items-center gap-2">
+            🖨️ Print / PDF
+          </button>
+          <div id="periode-label" class="ml-auto self-center text-sm text-slate-500"></div>
+        </div>
+
+        <!-- Tabel -->
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-slate-50 border-b border-slate-200">
+                <tr class="text-left text-slate-600">
+                  <th class="px-4 py-3 font-semibold w-12">No</th>
+                  <th class="px-4 py-3 font-semibold">Kode</th>
+                  <th class="px-4 py-3 font-semibold">Anggota</th>
+                  <th class="px-4 py-3 font-semibold">Tgl Pinjam</th>
+                  <th class="px-4 py-3 font-semibold">Jatuh Tempo</th>
+                  <th class="px-4 py-3 font-semibold">Buku</th>
+                  <th class="px-4 py-3 font-semibold text-center">Status</th>
+                  <th class="px-4 py-3 font-semibold text-right">Denda</th>
+                </tr>
+              </thead>
+              <tbody id="tabel-laporan">
+                <tr><td colspan="8" class="px-4 py-10 text-center text-slate-400">Pilih periode & klik Terapkan</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ TAB BUKU ============ -->
+      <section id="view-buku" class="hidden">
+        <div class="flex gap-2 mb-3">
+          <button id="btn-export-buku-csv"
+            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium">
+            📥 Export CSV
+          </button>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-slate-50 border-b border-slate-200">
+                <tr class="text-left text-slate-600">
+                  <th class="px-4 py-3 font-semibold w-12">No</th>
+                  <th class="px-4 py-3 font-semibold">Kode</th>
+                  <th class="px-4 py-3 font-semibold">Judul</th>
+                  <th class="px-4 py-3 font-semibold">Penulis</th>
+                  <th class="px-4 py-3 font-semibold">Kategori</th>
+                  <th class="px-4 py-3 font-semibold text-center">Stok</th>
+                  <th class="px-4 py-3 font-semibold text-center">Total Dipinjam</th>
+                  <th class="px-4 py-3 font-semibold text-center">Sedang Dipinjam</th>
+                </tr>
+              </thead>
+              <tbody id="tabel-buku-laporan">
+                <tr><td colspan="8" class="px-4 py-10 text-center text-slate-400">⏳ Memuat data...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Print Area -->
+  <div id="print-area" class="hidden"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/laporan.js"></script>
+    <script src="/js/icons.js"></script>
+</body>
+</html>

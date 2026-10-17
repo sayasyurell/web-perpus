@@ -1,0 +1,257 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="view-transition" content="same-origin">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Peminjaman - Perpustakaan Sekolah</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .autocomplete-list {
+      position: absolute;
+      top: 100%; left: 0; right: 0;
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 0.5rem;
+      max-height: 220px; overflow-y: auto;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .autocomplete-item {
+      padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f1f5f9; font-size: 13px;
+    }
+    .autocomplete-item:hover, .autocomplete-item.active { background: #eff6ff; }
+    .autocomplete-item small { color: #64748b; display: block; margin-top: 2px; }
+  </style>
+  <script src="/vendor/lucide.min.js"></script>
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body class="bg-slate-100 min-h-screen">
+
+  <div class="flex min-h-screen">
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="w-60 bg-slate-900 text-slate-100 flex-shrink-0 flex flex-col">
+      <div class="p-5 border-b border-slate-700">
+        <div class="flex items-center gap-2">
+          <img src="/img/logo.png" alt="Logo" style="width:42px;height:42px;object-fit:contain;background:#fff;border-radius:10px;padding:4px;flex-shrink:0;"><div style="display:flex;flex-direction:column;">
+            <div class="font-bold text-sm">SMPN 1 Taman</div>
+            <div class="text-xs text-slate-400">Sidoarjo</div>
+          </div>
+        </div>
+      </div>
+
+                  <nav class="flex-1 p-3 space-y-1 text-sm">
+        <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300" >
+          <span>🏠</span> <span>Dashboard</span>
+        </a>
+        <a href="/buku.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300" >
+          <span>📖</span> <span>Buku</span>
+        </a>
+        <a href="/anggota.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300" >
+          <span>👥</span> <span>Anggota</span>
+        </a>
+        <a href="/peminjaman.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-600 text-white font-medium" >
+          <span>🔄</span> <span>Peminjaman</span>
+        </a>
+        <a href="/laporan.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300" >
+          <span>📊</span> <span>Laporan</span>
+        </a>
+                <a href="/pengaturan.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300" >
+          <span>⚙️</span> <span>Pengaturan</span>
+        </a>
+      </nav>
+
+      <div class="p-4 border-t border-slate-700 text-xs text-slate-500">v0.6 — Fase 6</div>
+    </aside>
+
+    <!-- ============ MAIN ============ -->
+    <main class="flex-1 p-8 overflow-x-auto">
+
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-slate-800">Peminjaman Buku</h1>
+          <p class="text-slate-500 text-sm">Kelola transaksi peminjaman & pengembalian</p>
+        </div>
+        <button id="btn-pinjam-baru"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-medium flex items-center gap-2 shadow-sm">
+          <span class="text-lg">＋</span> Peminjaman Baru
+        </button>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="bg-white p-4 rounded-lg shadow-sm mb-4 flex flex-wrap gap-3 items-center">
+        <div class="flex-1 min-w-[220px] relative">
+          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+          <input id="search" type="text" placeholder="Cari kode pinjam, NIS, atau nama..."
+            class="w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+        </div>
+
+        <select id="filter-status"
+          class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">Semua Status</option>
+          <option value="dipinjam">Dipinjam</option>
+          <option value="sebagian">Sebagian Kembali</option>
+          <option value="dikembalikan">Dikembalikan</option>
+          <option value="terlambat">⚠️ Terlambat</option>
+        </select>
+
+        <select id="filter-limit"
+          class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="20">20 / halaman</option>
+          <option value="50">50 / halaman</option>
+          <option value="100">100 / halaman</option>
+        </select>
+
+        <button id="btn-reset"
+          class="px-3 py-2 border border-slate-300 rounded-lg text-sm hover:bg-slate-100">Reset</button>
+      </div>
+
+      <!-- Tabel -->
+      <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50 border-b border-slate-200">
+              <tr class="text-left text-slate-600">
+                <th class="px-4 py-3 font-semibold w-12">No</th>
+                <th class="px-4 py-3 font-semibold">Kode Pinjam</th>
+                <th class="px-4 py-3 font-semibold">Anggota</th>
+                <th class="px-4 py-3 font-semibold">Tgl Pinjam</th>
+                <th class="px-4 py-3 font-semibold">Jatuh Tempo</th>
+                <th class="px-4 py-3 font-semibold text-center">Buku</th>
+                <th class="px-4 py-3 font-semibold text-center">Status</th>
+                <th class="px-4 py-3 font-semibold text-right">Denda</th>
+                <th class="px-4 py-3 font-semibold text-center w-32">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tabel-body">
+              <tr><td colspan="9" class="px-4 py-10 text-center text-slate-400">⏳ Memuat data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="flex items-center justify-between px-4 py-3 border-t border-slate-200 bg-slate-50">
+          <div id="info-page" class="text-sm text-slate-500"></div>
+          <div id="pagination" class="flex gap-1"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ============ MODAL PEMINJAMAN BARU ============ -->
+  <div id="modal-pinjam" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[92vh] overflow-y-auto">
+      <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center sticky top-0 bg-white z-10">
+        <h2 class="text-lg font-bold text-slate-800">📋 Peminjaman Baru</h2>
+        <button id="btn-close-pinjam" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button>
+      </div>
+
+      <form id="form-pinjam" class="p-6 space-y-5">
+
+        <!-- Pilih Anggota -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">
+            Anggota <span class="text-red-500">*</span>
+          </label>
+          <div class="relative" id="wrap-anggota">
+            <input type="text" id="anggota-search" autocomplete="off" placeholder="Ketik NIS atau nama..."
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="hidden" id="anggota-id">
+            <div id="anggota-list" class="autocomplete-list hidden"></div>
+          </div>
+          <div id="anggota-info" class="hidden mt-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm">
+            <div class="font-medium text-blue-800" id="anggota-nama-terpilih"></div>
+            <div class="text-xs text-blue-600 mt-0.5" id="anggota-detail-terpilih"></div>
+          </div>
+        </div>
+
+        <!-- Tanggal -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Tanggal Pinjam</label>
+            <input type="date" id="tanggal-pinjam"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Jatuh Tempo (otomatis)</label>
+            <input type="text" id="tanggal-jatuh" readonly
+              class="w-full px-3 py-2 border border-slate-200 bg-slate-50 rounded-lg text-sm text-slate-600">
+          </div>
+        </div>
+
+        <!-- Daftar Buku -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="block text-sm font-medium text-slate-700">
+              Buku yang Dipinjam <span class="text-red-500">*</span>
+            </label>
+            <span id="info-max-buku" class="text-xs text-slate-500">Maks: 3 buku</span>
+          </div>
+
+          <div id="buku-rows" class="space-y-2"></div>
+
+          <button type="button" id="btn-tambah-buku"
+            class="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+            <span class="text-lg">＋</span> Tambah buku lain
+          </button>
+        </div>
+
+        <!-- Catatan -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Catatan (opsional)</label>
+          <textarea id="catatan" rows="2"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-4 border-t border-slate-200">
+          <button type="button" id="btn-cancel-pinjam"
+            class="px-4 py-2 border border-slate-300 rounded-lg text-sm hover:bg-slate-100">Batal</button>
+          <button type="submit" id="btn-submit-pinjam"
+            class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">
+            Simpan Peminjaman
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ MODAL DETAIL & PENGEMBALIAN ============ -->
+  <div id="modal-detail" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[92vh] overflow-y-auto">
+      <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center sticky top-0 bg-white z-10">
+        <h2 class="text-lg font-bold text-slate-800">📄 Detail Peminjaman</h2>
+        <div class="flex gap-2">
+          <button id="btn-print" class="text-slate-500 hover:text-slate-800 text-sm px-3 py-1 rounded hover:bg-slate-100">🖨️ Cetak</button>
+          <button id="btn-close-detail" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button>
+        </div>
+      </div>
+
+      <div id="detail-content" class="p-6"></div>
+    </div>
+  </div>
+
+  <!-- Area print tersembunyi -->
+  <div id="print-area" class="hidden"></div>
+
+  <!-- Modal Hapus -->
+  <div id="modal-hapus" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 text-center">
+      <div class="text-5xl mb-3">⚠️</div>
+      <h2 class="text-lg font-bold text-slate-800 mb-1">Hapus Peminjaman?</h2>
+      <p id="hapus-info" class="text-sm text-slate-500 mb-5"></p>
+      <p class="text-xs text-amber-600 mb-5">Stok buku akan dikembalikan.</p>
+      <div class="flex gap-2">
+        <button id="btn-cancel-hapus"
+          class="flex-1 px-4 py-2 border border-slate-300 rounded-lg text-sm hover:bg-slate-100">Batal</button>
+        <button id="btn-konfirmasi-hapus"
+          class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium">Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/peminjaman.js"></script>
+    <script src="/js/icons.js"></script>
+</body>
+</html>

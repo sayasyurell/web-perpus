@@ -1,0 +1,122 @@
+name: Build & Release Portable
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Download Node.exe Portable
+        run: |
+          mkdir -p build-portable
+          curl -sL -f -o build-portable/node.exe https://nodejs.org/dist/v22.20.0/win-x64/node.exe
+          SIZE=$(stat -c%s build-portable/node.exe)
+          echo "Node.exe size: $SIZE bytes"
+          if [ "$SIZE" -lt 50000000 ]; then
+            echo "❌ Download gagal"
+            exit 1
+          fi
+
+      - name: Copy Project Files
+        run: |
+          mkdir -p build-portable/app
+          cp server.js db.js package.json package-lock.json .gitignore build-portable/app/
+          cp -r public routes middleware utils build-portable/app/
+
+      - name: Install Dependencies
+        run: |
+          cd build-portable/app
+          npm install --omit=dev --no-audit --no-fund 2>&1 | tail -5
+          echo "=== Cek prebuilds ==="
+          ls -la node_modules/better-sqlite3/prebuilds/
+          if [ ! -f "node_modules/better-sqlite3/prebuilds/win32-x64.node" ]; then
+            echo "❌ Binary Windows tidak ada!"
+            exit 1
+          fi
+          echo "✅ Binary Windows OK"
+
+      - name: Create start.bat
+        run: |
+          cat > build-portable/start.bat << 'EOF'
+          @echo off
+          title Perpustakaan SMPN 1 Taman
+          cd /d "%~dp0"
+          echo.
+          echo  ========================================
+          echo   PERPUSTAKAAN SMPN 1 TAMAN SIDOARJO
+          echo  ========================================
+          echo.
+          echo  Server berjalan di: http://localhost:3000
+          echo  Tekan Ctrl+C untuk mematikan server.
+          echo.
+          timeout /t 2 /nobreak >nul
+          start "" http://localhost:3000
+          node.exe app\server.js
+          pause
+          EOF
+
+      - name: Create ZIP
+        run: |
+          cd build-portable
+          zip -r -q -9 ../app-${{ github.ref_name }}.zip . \
+            -x "*/node_modules/*/test/*" \
+               "*/node_modules/*/tests/*" \
+               "*/node_modules/*/docs/*" \
+               "*/node_modules/*/*.md" \
+               "*/node_modules/*/*.txt" \
+               "*/node_modules/*/*.map" \
+               "*/node_modules/*/*.d.ts" \
+               "*/node_modules/*/.eslint*" \
+               "*/node_modules/*/.editorconfig" \
+               "*/node_modules/*/.travis.yml" \
+               "*/node_modules/*/.github/*" \
+               "*/node_modules/*/example/*" \
+               "*/node_modules/*/examples/*" \
+               "*/node_modules/.bin/*"
+          cd ..
+          echo "=== File ZIP hasil ==="
+          ls -lh app-*.zip
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ github.workspace }}/app-${{ github.ref_name }}.zip
+          name: "Versi ${{ github.ref_name }}"
+          generate_release_notes: true
+          body: |
+            ## 📚 Perpustakaan SMPN 1 Taman Sidoarjo — ${{ github.ref_name }}
+
+            ### 🚀 Cara Pakai
+            1. Download **`app-${{ github.ref_name }}.zip`** di bawah
+            2. Extract ke folder manapun
+            3. Dobel-klik **`start.bat`**
+            4. **Password admin muncul di cmd** — catat & simpan
+            5. Browser otomatis terbuka di http://localhost:3000
+            6. Login → wajib ganti password
+
+            ### 💻 Kebutuhan
+            - Windows 10/11 (64-bit)
+            - Tidak perlu install Node.js (sudah di-bundle)
+            - Offline-ready
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

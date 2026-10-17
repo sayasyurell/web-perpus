@@ -1,0 +1,402 @@
+/* ============================================================
+   THEME — Modern Elegant v2
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --primary:        #059669;
+  --primary-dark:   #047857;
+  --primary-light:  #d1fae5;
+  --primary-soft:   #ecfdf5;
+  --accent:         #f59e0b;
+  --sidebar-bg-1:   #0a0f1e;
+  --sidebar-bg-2:   #111827;
+  --surface:        #ffffff;
+  --surface-2:      #f8fafc;
+  --border:         #e5e7eb;
+  --text-1:         #0f172a;
+  --text-2:         #475569;
+  --text-3:         #94a3b8;
+  --shadow-xs:      0 1px 2px rgba(15,23,42,0.04);
+  --shadow-sm:      0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
+  --shadow-md:      0 4px 6px -1px rgba(15,23,42,0.07), 0 2px 4px -1px rgba(15,23,42,0.04);
+  --shadow-lg:      0 20px 25px -5px rgba(15,23,42,0.08), 0 10px 10px -5px rgba(15,23,42,0.02);
+  --shadow-xl:      0 25px 50px -12px rgba(15,23,42,0.15);
+  --radius:         12px;
+  --radius-lg:      16px;
+}
+
+/* ===== Global ===== */
+* {
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+              color 0.15s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-feature-settings: 'cv11', 'ss01';
+  letter-spacing: -0.011em;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #cbd5e1, #94a3b8);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: #64748b; background-clip: padding-box; }
+
+/* ===== Tailwind color override ===== */
+.bg-blue-600 { background-color: var(--primary) !important; }
+.bg-blue-700 { background-color: var(--primary-dark) !important; }
+.hover\:bg-blue-700:hover { background-color: var(--primary-dark) !important; }
+.hover\:bg-blue-600:hover { background-color: var(--primary) !important; }
+.text-blue-600 { color: var(--primary) !important; }
+.text-blue-700 { color: var(--primary) !important; }
+.text-blue-800 { color: var(--primary-dark) !important; }
+.hover\:text-blue-800:hover { color: var(--primary-dark) !important; }
+.bg-blue-50 { background-color: var(--primary-soft) !important; }
+.bg-blue-100 { background-color: #dbeafe !important; }
+.border-blue-500, .border-blue-600 { border-color: var(--primary) !important; }
+.border-blue-200 { border-color: #a7f3d0 !important; }
+.focus\:ring-blue-500:focus { --tw-ring-color: var(--primary) !important; }
+
+/* ===== SIDEBAR ===== */
+aside {
+  background: linear-gradient(165deg, var(--sidebar-bg-1) 0%, var(--sidebar-bg-2) 100%) !important;
+  box-shadow: 4px 0 24px rgba(15,23,42,0.12);
+  position: relative;
+}
+aside::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 1px; height: 100%;
+  background: linear-gradient(180deg, transparent, rgba(255,255,255,0.08), transparent);
+}
+aside > div:first-child {
+  background: linear-gradient(135deg, rgba(5,150,105,0.15), rgba(5,150,105,0.05));
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+}
+aside nav a {
+  border-radius: 10px !important;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  position: relative;
+  overflow: hidden;
+}
+aside nav a::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 50%;
+  width: 3px; height: 0;
+  background: var(--primary);
+  border-radius: 0 3px 3px 0;
+  transform: translateY(-50%);
+  transition: height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+aside nav a:hover {
+  background: rgba(255,255,255,0.05) !important;
+  color: white !important;
+}
+aside nav a:hover::before { height: 60%; }
+aside nav a.bg-blue-600 {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
+  box-shadow: 0 8px 20px -4px rgba(5,150,105,0.5),
+              inset 0 1px 0 rgba(255,255,255,0.15);
+  color: white !important;
+}
+aside nav a.bg-blue-600::before { display: none; }
+aside nav a svg { flex-shrink: 0; opacity: 0.9; }
+aside nav a.bg-blue-600 svg { opacity: 1; }
+
+.sidebar-logo {
+  width: 42px; height: 42px; object-fit: contain;
+  background: white; border-radius: 12px; padding: 5px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2), inset 0 -1px 0 rgba(0,0,0,0.05);
+  transition: transform 0.25s ease;
+}
+aside:hover .sidebar-logo { transform: scale(1.05) rotate(-2deg); }
+
+/* ===== MAIN AREA ===== */
+main { position: relative; }
+
+/* Header h1 gradient */
+main > div:first-child h1,
+main > div:first-child > div > h1 {
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--text-1) 0%, var(--primary) 150%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800 !important;
+}
+
+/* ===== CARDS ===== */
+.bg-white.rounded-lg,
+.bg-white.rounded-xl {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-sm) !important;
+  border-radius: var(--radius-lg) !important;
+}
+.bg-white.rounded-lg:hover,
+.bg-white.rounded-xl:hover {
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* Stat cards (dashboard) */
+.bg-white.p-5.rounded-xl {
+  border-left: none !important;
+  padding: 1.5rem !important;
+  position: relative;
+  overflow: hidden;
+}
+.bg-white.p-5.rounded-xl::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  opacity: 0.9;
+}
+.bg-white.p-5.rounded-xl:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg) !important;
+}
+.bg-white.p-5.rounded-xl .text-3xl {
+  font-weight: 800 !important;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--text-1), var(--primary-dark));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ===== TABLE ===== */
+table {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+table thead {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
+}
+table thead th {
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  font-size: 0.7rem !important;
+  text-transform: uppercase;
+  color: var(--text-2) !important;
+  padding: 1rem 1rem !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+table tbody tr {
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+table tbody tr:hover {
+  background: linear-gradient(90deg, rgba(5,150,105,0.04), transparent) !important;
+}
+table tbody td {
+  padding: 1rem 1rem !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+/* ===== BUTTONS ===== */
+button, a[class*="px-"][class*="py-"] {
+  font-weight: 600 !important;
+  letter-spacing: -0.005em;
+  border-radius: 10px !important;
+  position: relative;
+}
+button.bg-blue-600, a.bg-blue-600,
+button.bg-emerald-600, a.bg-emerald-600 {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1),
+              inset 0 1px 0 rgba(255,255,255,0.15);
+}
+button.bg-blue-600:hover, a.bg-blue-600:hover,
+button.bg-emerald-600:hover, a.bg-emerald-600:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px -4px rgba(5,150,105,0.4),
+              inset 0 1px 0 rgba(255,255,255,0.2);
+}
+button.bg-red-600:hover, a.bg-red-600:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px -4px rgba(220,38,38,0.4);
+}
+button:active { transform: translateY(0) scale(0.98) !important; }
+
+/* ===== INPUT ===== */
+input, select, textarea {
+  border-radius: 10px !important;
+  font-weight: 500;
+}
+input:hover:not(:focus), select:hover:not(:focus), textarea:hover:not(:focus) {
+  border-color: #cbd5e1 !important;
+}
+input:focus, select:focus, textarea:focus {
+  box-shadow: 0 0 0 4px rgba(5,150,105,0.12),
+              0 1px 2px rgba(0,0,0,0.05) !important;
+  border-color: var(--primary) !important;
+}
+
+/* ===== MODAL ===== */
+[id^="modal"]:not(.hidden) > div {
+  animation: modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-xl) !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(255,255,255,0.8);
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.94) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+[id^="modal"]:not(.hidden) {
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ===== BADGE/PILL ===== */
+span[class*="rounded-full"],
+span[class*="px-2"][class*="py-0.5"],
+span[class*="px-2"][class*="py-1"] {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  font-size: 0.72rem !important;
+  padding: 0.25rem 0.625rem !important;
+  border: 1px solid rgba(0,0,0,0.03);
+}
+
+/* ===== TOAST ===== */
+.fixed.top-4.right-4 {
+  animation: slideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-xl) !important;
+  border-radius: 12px !important;
+  font-weight: 600;
+  backdrop-filter: blur(12px);
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(120%) scale(0.9); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+/* ===== SIDEBAR LOGO TEXT ===== */
+aside .sidebar-logo + div > div:first-child {
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
+  font-size: 0.875rem;
+}
+aside .sidebar-logo + div > div:last-child {
+  color: rgba(148,163,184,0.8) !important;
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+}
+
+/* ===== ICON BUTTONS (aksi tabel) ===== */
+table button[onclick^="edit"], table button[onclick^="hapus"],
+table button[onclick^="konfirmasi"], table button[onclick^="buka"] {
+  border-radius: 8px !important;
+  padding: 0.4rem !important;
+  border: 1px solid transparent;
+}
+table button[onclick^="edit"]:hover,
+table button[onclick^="buka"]:hover {
+  background: #fef3c7 !important;
+  border-color: #fcd34d;
+  transform: scale(1.08);
+}
+table button[onclick^="hapus"]:hover,
+table button[onclick^="konfirmasi"]:hover {
+  background: #fee2e2 !important;
+  border-color: #fca5a5;
+  transform: scale(1.08);
+}
+
+/* ===== LINK ===== */
+a.text-blue-600:hover, a.text-blue-700:hover {
+  text-decoration: none;
+  background: var(--primary-soft);
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+}
+
+/* ===== DASHBOARD CHART BARS ===== */
+.chart-bar {
+  background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+  box-shadow: 0 4px 12px -2px rgba(5,150,105,0.35);
+  border-radius: 8px 8px 0 0 !important;
+}
+
+/* ===== FOCUS VISIBLE ===== */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ===== ICON INLINE ===== */
+button svg, a svg, button i[data-lucide], a i[data-lucide] { pointer-events: none; }
+
+/* ===== RESPONSIVE POLISH ===== */
+@media (max-width: 768px) {
+  aside { box-shadow: 4px 0 20px rgba(0,0,0,0.2); }
+  main { padding: 1rem !important; }
+  main h1 { font-size: 1.5rem !important; }
+}
+
+/* ===== EMPTY STATE ===== */
+td[colspan] { color: var(--text-3) !important; }
+
+/* ============================================================
+   PAGE TRANSITION — crossfade native, no white flash
+   ============================================================ */
+
+/* View Transitions API — crossfade otomatis antar halaman */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.18s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Konten utama slide-up halus */
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+main {
+  animation: pageEnter 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Logo stabil */
+.sidebar-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 10px;
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html, body, main, aside, * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.01ms !important;
+  }
+}

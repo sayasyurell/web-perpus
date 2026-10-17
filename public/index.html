@@ -1,0 +1,165 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="view-transition" content="same-origin">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Perpustakaan Sekolah</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .chart-bar {
+      transition: height 0.3s ease;
+    }
+  </style>
+    <script src="/vendor/lucide.min.js"></script>
+  <link rel="stylesheet" href="/css/theme.css">
+</head>
+<body class="bg-slate-100 min-h-screen">
+
+  <div class="flex min-h-screen">
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="w-60 bg-slate-900 text-slate-100 flex-shrink-0 flex flex-col">
+      <div class="p-5 border-b border-slate-700">
+        <div class="flex items-center gap-2">
+          <img src="/img/logo.png" alt="Logo" style="width:42px;height:42px;object-fit:contain;background:#fff;border-radius:10px;padding:4px;flex-shrink:0;"><div style="display:flex;flex-direction:column;">
+            <div class="font-bold text-sm">SMPN 1 Taman</div>
+            <div class="text-xs text-slate-400">Sidoarjo</div>
+          </div>
+        </div>
+      </div>
+
+                  <nav class="flex-1 p-3 space-y-1 text-sm">
+        <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-blue-600 text-white font-medium" >
+          <span>🏠</span> <span>Dashboard</span>
+        </a>
+        <a href="/buku.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300" >
+          <span>📖</span> <span>Buku</span>
+        </a>
+        <a href="/anggota.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300" >
+          <span>👥</span> <span>Anggota</span>
+        </a>
+        <a href="/peminjaman.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300" >
+          <span>🔄</span> <span>Peminjaman</span>
+        </a>
+        <a href="/laporan.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300" >
+          <span>📊</span> <span>Laporan</span>
+        </a>
+                <a href="/pengaturan.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 text-slate-300" >
+          <span>⚙️</span> <span>Pengaturan</span>
+        </a>
+      </nav>
+
+      <div class="p-4 border-t border-slate-700 text-xs text-slate-500">v0.6 — Fase 6</div>
+    </aside>
+
+    <!-- ============ MAIN ============ -->
+    <main class="flex-1 p-8 overflow-x-auto">
+
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-slate-800">Dashboard</h1>
+        <p class="text-slate-500 text-sm" id="waktu-sekarang">Memuat...</p>
+      </div>
+
+      <!-- 4 Kartu Statistik -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-xs text-slate-500 uppercase font-semibold">Total Buku</div>
+              <div class="text-3xl font-bold text-slate-800 mt-1" id="stat-buku">—</div>
+              <div class="text-xs text-slate-400 mt-1" id="stat-buku-sub">—</div>
+            </div>
+            <div class="text-4xl opacity-20">📖</div>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-emerald-500">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-xs text-slate-500 uppercase font-semibold">Anggota Aktif</div>
+              <div class="text-3xl font-bold text-slate-800 mt-1" id="stat-anggota">—</div>
+              <div class="text-xs text-slate-400 mt-1" id="stat-anggota-sub">—</div>
+            </div>
+            <div class="text-4xl opacity-20">👥</div>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-amber-500">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-xs text-slate-500 uppercase font-semibold">Sedang Dipinjam</div>
+              <div class="text-3xl font-bold text-slate-800 mt-1" id="stat-pinjam">—</div>
+              <div class="text-xs text-slate-400 mt-1" id="stat-pinjam-sub">—</div>
+            </div>
+            <div class="text-4xl opacity-20">🔄</div>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-red-500">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-xs text-slate-500 uppercase font-semibold">Terlambat</div>
+              <div class="text-3xl font-bold text-red-600 mt-1" id="stat-terlambat">—</div>
+              <div class="text-xs text-slate-400 mt-1">Perlu ditindak</div>
+            </div>
+            <div class="text-4xl opacity-20">⚠️</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: Chart + Buku Populer -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+        <!-- Chart 7 Hari -->
+        <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm">
+          <h2 class="font-bold text-slate-800 mb-4">📈 Peminjaman 7 Hari Terakhir</h2>
+          <div id="chart-7hari" class="flex items-end justify-between gap-2 h-48 border-b border-slate-200 pb-2">
+            <div class="text-slate-400 text-sm w-full text-center">Memuat grafik...</div>
+          </div>
+          <div id="chart-labels" class="flex justify-between gap-2 mt-2 text-xs text-slate-500"></div>
+        </div>
+
+        <!-- Buku Populer -->
+        <div class="bg-white p-6 rounded-xl shadow-sm">
+          <h2 class="font-bold text-slate-800 mb-4">🏆 Buku Terpopuler</h2>
+          <div id="populer-list" class="space-y-3">
+            <div class="text-slate-400 text-sm">Memuat...</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Row 3: Peminjaman Terbaru + Stok Menipis -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Peminjaman Terbaru -->
+        <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="font-bold text-slate-800">🕐 Peminjaman Terbaru</h2>
+            <a href="/peminjaman.html" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Lihat semua →</a>
+          </div>
+          <div id="terbaru-list" class="space-y-2">
+            <div class="text-slate-400 text-sm">Memuat...</div>
+          </div>
+        </div>
+
+        <!-- Stok Menipis -->
+        <div class="bg-white p-6 rounded-xl shadow-sm">
+          <h2 class="font-bold text-slate-800 mb-4">📦 Stok Menipis</h2>
+          <div id="stok-menipis-list" class="space-y-3">
+            <div class="text-slate-400 text-sm">Memuat...</div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/dashboard.js"></script>
+    <script src="/js/icons.js"></script>
+</body>
+</html>

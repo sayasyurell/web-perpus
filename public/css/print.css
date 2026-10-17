@@ -1,0 +1,244 @@
+/* ============================================================
+   PRINT STYLESHEET — v3 (clean, no syntax errors)
+   ============================================================ */
+
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  html, body {
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-family: 'Times New Roman', Georgia, serif;
+  }
+
+  body > *:not(#print-area) { display: none !important; }
+  .sidebar, aside, nav, header, footer, button, .no-print { display: none !important; }
+
+  #print-area {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .print-page {
+    font-size: 10pt;
+    line-height: 1.35;
+    color: #000;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  /* ===== HEADER ===== */
+  .print-header {
+    text-align: center;
+    border-bottom: 2pt double #333;
+    padding-bottom: 5pt;
+    margin-bottom: 10pt;
+  }
+  .print-header h1 {
+    font-size: 14pt;
+    font-weight: bold;
+    margin: 0 0 2pt 0;
+    text-transform: uppercase;
+  }
+  .print-header h2 {
+    font-size: 11pt;
+    font-weight: normal;
+    margin: 0;
+  }
+  .print-header .meta {
+    font-size: 8.5pt;
+    color: #555;
+    margin-top: 2pt;
+  }
+
+  /* ===== INFO GRID ===== */
+  .print-info {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 2pt 10pt;
+    margin: 8pt 0 12pt 0;
+    font-size: 10pt;
+  }
+  .print-info dt { color: #444; min-width: 90pt; }
+  .print-info dd { margin: 0; font-weight: 600; }
+
+  /* ===== TABEL ===== */
+  .print-table {
+    table-layout: fixed !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 8.5pt !important;
+    margin: 6pt 0;
+    box-sizing: border-box !important;
+  }
+  .print-table thead { display: table-header-group; }
+  .print-table tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .print-table th,
+  .print-table td {
+    border: 0.5pt solid #666 !important;
+    padding: 2pt 3pt !important;
+    font-size: 8.5pt !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    vertical-align: top;
+  }
+  .print-table th {
+    background: #eaeaea !important;
+    color: #000;
+    text-align: left;
+    font-weight: bold;
+  }
+  .print-table tr:nth-child(even) td { background: #f7f7f7 !important; }
+  .print-table .text-center { text-align: center; }
+  .print-table .text-right { text-align: right; }
+  .print-table .mono {
+    font-family: 'Courier New', monospace;
+    font-size: 7.5pt !important;
+    word-break: break-all !important;
+  }
+
+  /* ===== RINGKASAN ===== */
+  .print-summary {
+    margin-top: 8pt;
+    padding: 6pt 8pt;
+    background: #f5f5f5 !important;
+    border: 1pt solid #666;
+    font-size: 9.5pt;
+  }
+  .print-summary .row {
+    display: flex;
+    justify-content: space-between;
+    margin: 1pt 0;
+  }
+  .print-summary .row.total {
+    border-top: 1pt solid #333;
+    padding-top: 3pt;
+    margin-top: 3pt;
+    font-weight: bold;
+  }
+
+  /* ===== TANDA TANGAN ===== */
+  .print-signature {
+    margin-top: 25pt;
+    font-size: 10pt;
+    page-break-inside: avoid;
+  }
+  .print-signature.right { text-align: right; }
+  .print-signature .date { margin-bottom: 35pt; }
+  .print-signature .line {
+    display: inline-block;
+    border-top: 1pt solid #333;
+    padding-top: 2pt;
+    min-width: 130pt;
+    text-align: center;
+  }
+
+  /* ===== KARTU ANGGOTA BARCODE ===== */
+  .print-cards-container { text-align: center; }
+
+  .print-card {
+    display: inline-block;
+    width: 8.5cm;
+    height: 5.4cm;
+    border: 1pt solid #333;
+    border-radius: 5pt;
+    padding: 5pt 6pt;
+    font-family: Arial, sans-serif;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    position: relative;
+    background: #fff !important;
+    vertical-align: top;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  .print-card-header {
+    display: flex;
+    align-items: center;
+    gap: 4pt;
+    border-bottom: 1.2pt solid #1a7a3e;
+    padding-bottom: 2pt;
+    margin-bottom: 4pt;
+  }
+  .print-card-header img {
+    width: 16pt;
+    height: 16pt;
+    object-fit: contain;
+  }
+  .print-card-title {
+    font-size: 7pt;
+    font-weight: bold;
+    color: #1a7a3e;
+    line-height: 1.1;
+  }
+  .print-card-title .sub {
+    font-size: 5.5pt;
+    color: #666;
+    font-weight: normal;
+  }
+
+  .print-card-info-block {
+    padding: 3pt 0 2pt 0;
+    line-height: 1.25;
+  }
+  .print-card-info-block .name {
+    font-weight: bold;
+    font-size: 10pt;
+    color: #111;
+    margin-bottom: 1pt;
+    word-break: break-word;
+  }
+  .print-card-info-block .nis {
+    font-family: 'Courier New', monospace;
+    font-size: 8pt;
+    color: #333;
+    margin-bottom: 1pt;
+  }
+  .print-card-info-block .meta {
+    color: #666;
+    font-size: 7pt;
+  }
+
+  .print-card-barcode {
+    text-align: center;
+    margin-top: 3pt;
+  }
+  .print-card-barcode svg {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .print-card-footer {
+    position: absolute;
+    bottom: 3pt;
+    left: 6pt;
+    right: 6pt;
+    font-size: 5pt;
+    color: #999;
+    border-top: 0.5pt solid #ddd;
+    padding-top: 2pt;
+    display: flex;
+    justify-content: space-between;
+  }
+}
+
+@page {
+  margin: 1cm;
+  size: A4 portrait;
+}
